@@ -9,7 +9,7 @@ namespace FileManagerCLI
     {
         public static string PathSeparator = System.IO.Path.Combine(" ", " ").Trim();
 
-        public static IoItem[] GetDetailsForPath(string path)
+        public static IEnumerable<IoItem> GetDetailsForPath(string path)
         {
             var folders = Directory.GetDirectories(path)
                 .Select(w => new DirectoryInfo(w))
@@ -32,11 +32,10 @@ namespace FileManagerCLI
             
             if (path.ToCharArray().Count(x => PathSeparator.First() == x) > 1)
             {
-                return new[] {new IoItem {Hidden = false, IoType = IoItemType.Back, Name = ".."}}.Concat(part)
-                    .ToArray();
+                return new[] {new IoItem {Hidden = false, IoType = IoItemType.Back, Name = ".."}}.Concat(part);
             }
 
-            return part.ToArray();
+            return part;
         }
     }
 }

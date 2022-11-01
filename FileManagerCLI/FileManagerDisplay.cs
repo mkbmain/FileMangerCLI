@@ -32,23 +32,9 @@ namespace FileManagerCLI
                     _xxPath += GetIoInfo.PathSeparator;
                 }
 
-                var items = GetIoInfo.GetDetailsForPath(Path).Where(e=> ShowHidden || e.Hidden == false).ToList();
+                var items = GetIoInfo.GetDetailsForPath(Path).Where(e => ShowHidden || e.Hidden == false).ToList();
                 _selected = items.First();
                 Display(items);
-
-                var display = _xxPath;
-                if (_display.Length < display.Length)
-                {
-                    display = display.Substring(display.Length - _display.Length, _display.Length);
-                }
-                else if (display.Length < _display.Length)
-                {
-                    display = display.PadRight(_display.Length, ' ');
-                }
-
-                Console.SetCursorPosition(0, 0);
-                Console.WriteLine(display);
-                Console.Write(FitWidth(_stored?.FullPath));
             }
         }
 
@@ -76,6 +62,10 @@ namespace FileManagerCLI
                 lineNum++;
                 if (lineNum >= (_display.First()?.Length ?? 0) - 1) break;
             }
+
+            Console.SetCursorPosition(0, 0);
+            Console.WriteLine(FitWidth(Path, false));
+            WriteStored();
         }
 
         private static void BuildDisplay(int maxWidth)
@@ -87,7 +77,7 @@ namespace FileManagerCLI
                 var widthCol = new DisplayElement[Console.WindowHeight - HeightOffset];
                 for (var i = 0; i < widthCol.Length; i++)
                 {
-                    widthCol[i] = new DisplayElement { Value = Empty, Point = new Point(item, i + 1) };
+                    widthCol[i] = new DisplayElement {Value = Empty, Point = new Point(item, i + 1)};
                 }
 
                 _display[item] = widthCol;
@@ -120,10 +110,19 @@ namespace FileManagerCLI
             {
                 Display(_displayItems, _offset);
             }
+
             Console.SetCursorPosition(displayElement.Point.X, displayElement.Point.Y + 1);
             Console.BackgroundColor = displayElement.BackgroundColor;
             Console.ForegroundColor = displayElement.ForegroundColor;
             Console.Write(displayElement.Value);
+        }
+
+        private static void WriteStored()
+        {
+            Console.BackgroundColor = Program.BackColor;
+            Console.ForegroundColor = Program.ForeColor;
+            Console.SetCursorPosition(0, 1);
+            Console.Write(FitWidth(_stored?.FullPath, false));
         }
 
         public static void Store()
@@ -133,10 +132,7 @@ namespace FileManagerCLI
                 case IoItemType.File:
                 case IoItemType.Directory:
                     _stored = new StoredIoItem(_selected, Path);
-                    Console.BackgroundColor = Program.BackColor;
-                    Console.ForegroundColor = Program.ForeColor;
-                    Console.SetCursorPosition(0, 1);
-                    Console.Write(FitWidth(_stored.Name));
+                    WriteStored();
                     break;
                 case IoItemType.Back:
                     break;
@@ -195,8 +191,10 @@ namespace FileManagerCLI
             EnterLine(_selected.DisplayName, newSelectedIndex - _offset, true);
         }
 
-        private static string FitWidth(string format) => (format ?? "").Length > _display.Length
-            ? (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
+        private static string FitWidth(string format, bool keepStart) => (format ?? "").Length > _display.Length
+            ? keepStart
+                ? (format ?? "")[.._display.Length]
+                : (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
             : (format ?? "").PadRight(_display.Length, ' ');
     }
 }
