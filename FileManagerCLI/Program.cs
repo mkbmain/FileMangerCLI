@@ -28,6 +28,9 @@ namespace FileManagerCLI
                     case ConsoleKey.Enter:
                         FileManagerDisplay.Select();
                         break;
+                    case ConsoleKey.H:
+                        FileManagerDisplay.ToggleHidden();
+                        break;
                     case ConsoleKey.S:
                         FileManagerDisplay.Store();
                         break;

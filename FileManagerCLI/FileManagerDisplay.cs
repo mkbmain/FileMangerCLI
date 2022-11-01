@@ -8,17 +8,18 @@ using FileManagerCLI.Extension;
 
 namespace FileManagerCLI
 {
-    public class FileManagerDisplay
+    public static class FileManagerDisplay
     {
         private const int HeightOffset = 3;
         private const char Empty = ' ';
         private static string _xxPath;
-        private static int MaxWidth = int.MaxValue;
+        private static int _maxWidth = int.MaxValue;
         private static DisplayElement[][] _display = Array.Empty<DisplayElement[]>();
         private static IoItem _selected;
         private static List<IoItem> _displayItems = new List<IoItem>();
-        private static int Offset = 0;
-        private static string Stored = null;
+        private static int _offset = 0;
+        private static StoredIoItem _stored = null;
+        private static bool ShowHidden = true;
 
         private static string Path
         {
@@ -31,7 +32,7 @@ namespace FileManagerCLI
                     _xxPath += GetIoInfo.PathSeparator;
                 }
 
-                var items = GetIoInfo.GetDetailsForPath(Path);
+                var items = GetIoInfo.GetDetailsForPath(Path).Where(e=> ShowHidden || e.Hidden == false).ToList();
                 _selected = items.First();
                 Display(items);
 
@@ -47,30 +48,27 @@ namespace FileManagerCLI
 
                 Console.SetCursorPosition(0, 0);
                 Console.WriteLine(display);
-                Console.Write(FitWidth(Stored));
+                Console.Write(FitWidth(_stored?.FullPath));
             }
         }
 
-        private static string FitWidth(string format) => (format ?? "").Length > _display.Length
-            ? (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
-            : (format ?? "").PadRight(_display.Length, ' ');
         public static void InitDisplay(int maxWidth = int.MaxValue)
         {
-            MaxWidth = maxWidth;
+            _maxWidth = maxWidth;
             Path = Environment.CurrentDirectory;
         }
 
         private static void Display(IEnumerable<IoItem> items)
         {
-            Offset = 0;
-            Display(items, Offset);
+            _offset = 0;
+            Display(items, _offset);
         }
 
         private static void Display(IEnumerable<IoItem> items, int offset)
         {
             var lineNum = 0;
             _displayItems = items.ToList();
-            BuildDisplay(MaxWidth);
+            BuildDisplay(_maxWidth);
             foreach (var line in _displayItems.Skip(offset))
             {
                 EnterLine(line.DisplayName, lineNum, line == _selected);
@@ -82,8 +80,8 @@ namespace FileManagerCLI
 
         private static void BuildDisplay(int maxWidth)
         {
-            MaxWidth = maxWidth;
-            _display = new DisplayElement[Math.Min(MaxWidth, Console.WindowWidth)][];
+            _maxWidth = maxWidth;
+            _display = new DisplayElement[Math.Min(_maxWidth, Console.WindowWidth)][];
             for (var item = 0; item < _display.Length; item++)
             {
                 var widthCol = new DisplayElement[Console.WindowHeight - HeightOffset];
@@ -97,7 +95,7 @@ namespace FileManagerCLI
 
             OutPutDisplay();
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
-            Console.Write("Mod = CTRL | Exit:Mod+q | Store:s".PadRight(_display.Length, ' '));
+            Console.Write("Mod = CTRL | Exit:Mod+q | Hidden:H | Store:S".PadRight(_display.Length, ' '));
         }
 
         private static void EnterLine(string text, int lineNum, bool selected)
@@ -117,10 +115,10 @@ namespace FileManagerCLI
 
         private static void OutPutDisplay(DisplayElement displayElement)
         {
-            if (_display.Length != Math.Min(MaxWidth, Console.WindowWidth) ||
+            if (_display.Length != Math.Min(_maxWidth, Console.WindowWidth) ||
                 _display.First().Length != Console.WindowHeight - HeightOffset)
             {
-                Display(_displayItems, Offset);
+                Display(_displayItems, _offset);
             }
             Console.SetCursorPosition(displayElement.Point.X, displayElement.Point.Y + 1);
             Console.BackgroundColor = displayElement.BackgroundColor;
@@ -134,17 +132,23 @@ namespace FileManagerCLI
             {
                 case IoItemType.File:
                 case IoItemType.Directory:
-                    Stored = System.IO.Path.Combine(Path, _selected.Name);
+                    _stored = new StoredIoItem(_selected, Path);
                     Console.BackgroundColor = Program.BackColor;
                     Console.ForegroundColor = Program.ForeColor;
                     Console.SetCursorPosition(0, 1);
-                    Console.Write(FitWidth(Stored));
+                    Console.Write(FitWidth(_stored.Name));
                     break;
                 case IoItemType.Back:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public static void ToggleHidden()
+        {
+            ShowHidden = !ShowHidden;
+            Path = Path;
         }
 
         public static void Select()
@@ -173,22 +177,26 @@ namespace FileManagerCLI
             var previous = _selected;
             _selected = _displayItems[newSelectedIndex];
 
-            if (newSelectedIndex > (Offset + _display.First().Length - 2))
+            if (newSelectedIndex > (_offset + _display.First().Length - 2))
             {
-                Offset += 10;
-                Display(_displayItems, Offset);
+                _offset += 10;
+                Display(_displayItems, _offset);
                 return;
             }
 
-            if (newSelectedIndex < Offset)
+            if (newSelectedIndex < _offset)
             {
-                Offset -= 10;
-                Display(_displayItems, Offset);
+                _offset -= 10;
+                Display(_displayItems, _offset);
                 return;
             }
 
-            EnterLine(previous.DisplayName, currentSlectedIndex - Offset, false);
-            EnterLine(_selected.DisplayName, newSelectedIndex - Offset, true);
+            EnterLine(previous.DisplayName, currentSlectedIndex - _offset, false);
+            EnterLine(_selected.DisplayName, newSelectedIndex - _offset, true);
         }
+
+        private static string FitWidth(string format) => (format ?? "").Length > _display.Length
+            ? (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
+            : (format ?? "").PadRight(_display.Length, ' ');
     }
 }

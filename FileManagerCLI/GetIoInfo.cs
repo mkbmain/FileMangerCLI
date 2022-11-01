@@ -17,7 +17,7 @@ namespace FileManagerCLI
                 {
                     Name = w.Name,
                     IoType = IoItemType.Directory,
-                    Hidden = w.Attributes.HasFlag(FileAttributes.Hidden)
+                    Hidden = w.Attributes.HasFlag(FileAttributes.Hidden )
                 })
                 .OrderBy(w => w.Name);
 
