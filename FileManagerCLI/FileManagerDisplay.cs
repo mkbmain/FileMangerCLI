@@ -10,6 +10,7 @@ namespace FileManagerCLI
 {
     public class FileManagerDisplay
     {
+        private const int HeightOffset = 3;
         private const char Empty = ' ';
         private static string _xxPath;
         private static int MaxWidth = int.MaxValue;
@@ -45,10 +46,14 @@ namespace FileManagerCLI
                 }
 
                 Console.SetCursorPosition(0, 0);
-                Console.Write(display);
+                Console.WriteLine(display);
+                Console.Write(FitWidth(Stored));
             }
         }
 
+        private static string FitWidth(string format) => (format ?? "").Length > _display.Length
+            ? (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
+            : (format ?? "").PadRight(_display.Length, ' ');
         public static void InitDisplay(int maxWidth = int.MaxValue)
         {
             MaxWidth = maxWidth;
@@ -81,18 +86,18 @@ namespace FileManagerCLI
             _display = new DisplayElement[Math.Min(MaxWidth, Console.WindowWidth)][];
             for (var item = 0; item < _display.Length; item++)
             {
-                var widthCol = new DisplayElement[Console.WindowHeight - 2];
+                var widthCol = new DisplayElement[Console.WindowHeight - HeightOffset];
                 for (var i = 0; i < widthCol.Length; i++)
                 {
-                    widthCol[i] = new DisplayElement {Value = Empty, Point = new Point(item, i + 1)};
+                    widthCol[i] = new DisplayElement { Value = Empty, Point = new Point(item, i + 1) };
                 }
 
                 _display[item] = widthCol;
             }
 
             OutPutDisplay();
-            Console.SetCursorPosition(0, Console.WindowHeight);
-            Console.Write("Mod = CTRL | Exit:Mod+q | Store:s");
+            Console.SetCursorPosition(0, Console.WindowHeight - 1);
+            Console.Write("Mod = CTRL | Exit:Mod+q | Store:s".PadRight(_display.Length, ' '));
         }
 
         private static void EnterLine(string text, int lineNum, bool selected)
@@ -112,6 +117,11 @@ namespace FileManagerCLI
 
         private static void OutPutDisplay(DisplayElement displayElement)
         {
+            if (_display.Length != Math.Min(MaxWidth, Console.WindowWidth) ||
+                _display.First().Length != Console.WindowHeight - HeightOffset)
+            {
+                Display(_displayItems, Offset);
+            }
             Console.SetCursorPosition(displayElement.Point.X, displayElement.Point.Y + 1);
             Console.BackgroundColor = displayElement.BackgroundColor;
             Console.ForegroundColor = displayElement.ForegroundColor;
@@ -125,9 +135,12 @@ namespace FileManagerCLI
                 case IoItemType.File:
                 case IoItemType.Directory:
                     Stored = System.IO.Path.Combine(Path, _selected.Name);
+                    Console.BackgroundColor = Program.BackColor;
+                    Console.ForegroundColor = Program.ForeColor;
+                    Console.SetCursorPosition(0, 1);
+                    Console.Write(FitWidth(Stored));
                     break;
                 case IoItemType.Back:
-                    Path = new DirectoryInfo(Path).Parent.FullName;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
