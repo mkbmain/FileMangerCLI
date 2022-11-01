@@ -8,7 +8,7 @@ namespace FileManagerCLI.Data
         public Point Point { get; set; }
         public char Value { get; set; }
         public bool Selected { get; set; }
-        public ConsoleColor BackgroundColor => Selected ? ConsoleColor.Black : ConsoleColor.White;
-        public ConsoleColor ForegroundColor => Selected ? ConsoleColor.White : ConsoleColor.Black;
+        public ConsoleColor BackgroundColor => Selected ? Program.ForeColor : Program.BackColor;
+        public ConsoleColor ForegroundColor => Selected ? Program.BackColor : Program.ForeColor;
     }
 }

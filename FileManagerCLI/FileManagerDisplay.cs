@@ -17,6 +17,7 @@ namespace FileManagerCLI
         private static IoItem _selected;
         private static List<IoItem> _displayItems = new List<IoItem>();
         private static int Offset = 0;
+        private static string Stored = null;
 
         private static string Path
         {
@@ -32,7 +33,7 @@ namespace FileManagerCLI
                 var items = GetIoInfo.GetDetailsForPath(Path);
                 _selected = items.First();
                 Display(items);
-                
+
                 var display = _xxPath;
                 if (_display.Length < display.Length)
                 {
@@ -46,6 +47,12 @@ namespace FileManagerCLI
                 Console.SetCursorPosition(0, 0);
                 Console.Write(display);
             }
+        }
+
+        public static void InitDisplay(int maxWidth = int.MaxValue)
+        {
+            MaxWidth = maxWidth;
+            Path = Environment.CurrentDirectory;
         }
 
         private static void Display(IEnumerable<IoItem> items)
@@ -68,45 +75,24 @@ namespace FileManagerCLI
             }
         }
 
-        public static void Select()
+        private static void BuildDisplay(int maxWidth)
         {
-            if (_selected.IoType == IoItemType.Directory)
+            MaxWidth = maxWidth;
+            _display = new DisplayElement[Math.Min(MaxWidth, Console.WindowWidth)][];
+            for (var item = 0; item < _display.Length; item++)
             {
-                Path = System.IO.Path.Combine(Path, _selected.Name);
-                return;
+                var widthCol = new DisplayElement[Console.WindowHeight - 2];
+                for (var i = 0; i < widthCol.Length; i++)
+                {
+                    widthCol[i] = new DisplayElement {Value = Empty, Point = new Point(item, i + 1)};
+                }
+
+                _display[item] = widthCol;
             }
 
-            if (_selected.IoType == IoItemType.Back)
-            {
-                Path = new DirectoryInfo(Path).Parent.FullName;
-            }
-        }
-
-        public static void ChangeSelected(bool up)
-        {
-            var currentSlectedIndex = _displayItems.IndexOf(_selected);
-            if ((up && currentSlectedIndex == 0) || (!up && currentSlectedIndex == _displayItems.Count - 1)) return;
-
-
-            var newSelectedIndex = currentSlectedIndex + (up ? -1 : 1);
-            var previous = _selected;
-            _selected = _displayItems[newSelectedIndex];
-
-            if (newSelectedIndex > (Offset + _display.First().Length - 2))
-            {
-                Offset += 10;
-                Display(_displayItems, Offset);
-            }
-            else if (newSelectedIndex < Offset)
-            {
-                Offset -= 10;
-                Display(_displayItems, Offset);
-            }
-            else
-            {
-                EnterLine(previous.DisplayName, currentSlectedIndex - Offset, false);
-                EnterLine(_selected.DisplayName, newSelectedIndex - Offset, true);
-            }
+            OutPutDisplay();
+            Console.SetCursorPosition(0, Console.WindowHeight);
+            Console.Write("Mod = CTRL | Exit:Mod+q | Store:s");
         }
 
         private static void EnterLine(string text, int lineNum, bool selected)
@@ -132,27 +118,64 @@ namespace FileManagerCLI
             Console.Write(displayElement.Value);
         }
 
-        public static void InitDisplay(int maxWidth = int.MaxValue)
+        public static void Store()
         {
-            Path = Environment.CurrentDirectory;
+            switch (_selected.IoType)
+            {
+                case IoItemType.File:
+                case IoItemType.Directory:
+                    Stored = System.IO.Path.Combine(Path, _selected.Name);
+                    break;
+                case IoItemType.Back:
+                    Path = new DirectoryInfo(Path).Parent.FullName;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
-        private static void BuildDisplay(int maxWidth)
+        public static void Select()
         {
-            MaxWidth = maxWidth;
-            _display = new DisplayElement[Math.Min(MaxWidth, Console.WindowWidth)][];
-            for (var item = 0; item < _display.Length; item++)
+            switch (_selected.IoType)
             {
-                var widthCol = new DisplayElement[Console.WindowHeight - 1];
-                for (var i = 0; i < widthCol.Length; i++)
-                {
-                    widthCol[i] = new DisplayElement {Value = Empty, Point = new Point(item, i + 1)};
-                }
+                case IoItemType.File:
+                    break;
+                case IoItemType.Directory:
+                    Path = System.IO.Path.Combine(Path, _selected.Name);
+                    break;
+                case IoItemType.Back:
+                    Path = new DirectoryInfo(Path).Parent.FullName;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-                _display[item] = widthCol;
+        public static void ChangeSelected(bool up)
+        {
+            var currentSlectedIndex = _displayItems.IndexOf(_selected);
+            if ((up && currentSlectedIndex == 0) || (!up && currentSlectedIndex == _displayItems.Count - 1)) return;
+
+            var newSelectedIndex = currentSlectedIndex + (up ? -1 : 1);
+            var previous = _selected;
+            _selected = _displayItems[newSelectedIndex];
+
+            if (newSelectedIndex > (Offset + _display.First().Length - 2))
+            {
+                Offset += 10;
+                Display(_displayItems, Offset);
+                return;
             }
 
-            OutPutDisplay();
+            if (newSelectedIndex < Offset)
+            {
+                Offset -= 10;
+                Display(_displayItems, Offset);
+                return;
+            }
+
+            EnterLine(previous.DisplayName, currentSlectedIndex - Offset, false);
+            EnterLine(_selected.DisplayName, newSelectedIndex - Offset, true);
         }
     }
 }
