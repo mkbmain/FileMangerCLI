@@ -7,6 +7,15 @@ namespace FileManagerCLI
     {
         public static ConsoleColor BackColor = ConsoleColor.White;
         public static ConsoleColor ForeColor = ConsoleColor.Black;
+        public static ConsoleModifiers ModKey = ConsoleModifiers.Control;
+
+        private static void IfMod(ConsoleModifiers modifier, Action invoke)
+        {
+            if (modifier.HasFlag(ModKey))
+            {
+                invoke();
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -31,16 +40,15 @@ namespace FileManagerCLI
                     case ConsoleKey.H:
                         FileManagerDisplay.ToggleHidden();
                         break;
+
+                    case ConsoleKey.D:
+                        IfMod(readKey.Modifiers, FileManagerDisplay.Delete);
+                        break;
                     case ConsoleKey.S:
                         FileManagerDisplay.Store();
                         break;
                     case ConsoleKey.Q:
-                        if (readKey.Modifiers == ConsoleModifiers.Control)
-                        {
-                            Console.Clear();
-                            return;
-                        }
-
+                        IfMod(readKey.Modifiers, Console.Clear);
                         break;
                 }
             }

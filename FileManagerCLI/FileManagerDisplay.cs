@@ -85,7 +85,8 @@ namespace FileManagerCLI
 
             OutPutDisplay();
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
-            Console.Write("Mod = CTRL | Exit:Mod+q | Hidden:H | Store:S".PadRight(_display.Length, ' '));
+            Console.Write(
+                $"Mod = {Program.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(_display.Length, ' '));
         }
 
         private static void EnterLine(string text, int lineNum, bool selected)
@@ -134,11 +135,30 @@ namespace FileManagerCLI
                     _stored = new StoredIoItem(_selected, Path);
                     WriteStored();
                     break;
-                case IoItemType.Back:
+            }
+        }
+
+        public static void Delete()
+        {
+            var path = System.IO.Path.Combine(Path, _selected.Name);
+            switch (_selected.IoType)
+            {
+                case IoItemType.File:
+                    System.IO.File.Delete(path);
+                    break;
+                case IoItemType.Directory:
+                    System.IO.Directory.Delete(path);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return;
+                    break;
             }
+
+            if (_stored?.FullPath == path)
+            {
+                _stored = null;
+            }
+            Path = Path;
         }
 
         public static void ToggleHidden()
@@ -151,16 +171,12 @@ namespace FileManagerCLI
         {
             switch (_selected.IoType)
             {
-                case IoItemType.File:
-                    break;
                 case IoItemType.Directory:
                     Path = System.IO.Path.Combine(Path, _selected.Name);
                     break;
                 case IoItemType.Back:
                     Path = new DirectoryInfo(Path).Parent.FullName;
                     break;
-                default:
-                    throw new ArgumentOutOfRangeException();
             }
         }
 
