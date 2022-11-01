@@ -1,4 +1,4 @@
-namespace FileManagerCLI
+namespace FileManagerCLI.Data
 {
     public class IoItem
     {

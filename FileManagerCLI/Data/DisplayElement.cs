@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace FileManagerCLI
+namespace FileManagerCLI.Data
 {
     public struct DisplayElement
     {
