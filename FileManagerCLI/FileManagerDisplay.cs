@@ -4,17 +4,15 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using FileManagerCLI.Data;
-using FileManagerCLI.Extension;
 
 namespace FileManagerCLI
 {
     public static class FileManagerDisplay
     {
+        private static Size WindowSize;
         private const int HeightOffset = 3;
-        private const char Empty = ' ';
         private static string _xxPath;
         private static int _maxWidth = int.MaxValue;
-        private static DisplayElement[][] _display = Array.Empty<DisplayElement[]>();
         private static IoItem _selected;
         private static List<IoItem> _displayItems = new List<IoItem>();
         private static int _offset = 0;
@@ -52,16 +50,10 @@ namespace FileManagerCLI
 
         private static void Display(IEnumerable<IoItem> items, int offset)
         {
-            var lineNum = 0;
+            Console.Clear();
+            _offset = offset;
             _displayItems = items.ToList();
             BuildDisplay(_maxWidth);
-            foreach (var line in _displayItems.Skip(offset))
-            {
-                EnterLine(line.DisplayName, lineNum, line == _selected);
-
-                lineNum++;
-                if (lineNum >= (_display.First()?.Length ?? 0) - 1) break;
-            }
 
             Console.SetCursorPosition(0, 0);
             Console.WriteLine(FitWidth(Path, false));
@@ -71,51 +63,38 @@ namespace FileManagerCLI
         private static void BuildDisplay(int maxWidth)
         {
             _maxWidth = maxWidth;
-            _display = new DisplayElement[Math.Min(_maxWidth, Console.WindowWidth)][];
-            for (var item = 0; item < _display.Length; item++)
+            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth), Console.WindowHeight - HeightOffset);
+            int i = 0;
+            for (i = _offset; i < Math.Min(_displayItems.Count, WindowSize.Height + _offset); i++)
             {
-                var widthCol = new DisplayElement[Console.WindowHeight - HeightOffset];
-                for (var i = 0; i < widthCol.Length; i++)
-                {
-                    widthCol[i] = new DisplayElement {Value = Empty, Point = new Point(item, i + 1)};
-                }
-
-                _display[item] = widthCol;
+                OutPutDisplay(_displayItems[i].DisplayName, i + 1 - _offset, _displayItems[i] == _selected);
             }
 
-            OutPutDisplay();
+            for (i = i; i < WindowSize.Height; i++)
+            {
+                OutPutDisplay(" ", i + 1 - _offset, false);
+            }
+
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(
-                $"Mod = {Program.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(_display.Length, ' '));
+                $"Mod = {Program.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width, ' '));
         }
 
-        private static void EnterLine(string text, int lineNum, bool selected)
+
+
+        private static void OutPutDisplay(string text, int y, bool selected)
         {
-            for (int i = 0; i < _display.Length; i++)
-            {
-                var item = _display[i][lineNum];
-                item.Value = text.Length - 1 < i ? ' ' : text[i];
-                item.Selected = selected;
-                OutPutDisplay(item);
-            }
-        }
-
-        private static void OutPutDisplay() => _display.Foreach(OutPutDisplay);
-
-        private static void OutPutDisplay(DisplayElement[] displayElements) => displayElements.Foreach(OutPutDisplay);
-
-        private static void OutPutDisplay(DisplayElement displayElement)
-        {
-            if (_display.Length != Math.Min(_maxWidth, Console.WindowWidth) ||
-                _display.First().Length != Console.WindowHeight - HeightOffset)
+            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth) ||
+                WindowSize.Height != Console.WindowHeight - HeightOffset)
             {
                 Display(_displayItems, _offset);
+                return;
             }
 
-            Console.SetCursorPosition(displayElement.Point.X, displayElement.Point.Y + 1);
-            Console.BackgroundColor = displayElement.BackgroundColor;
-            Console.ForegroundColor = displayElement.ForegroundColor;
-            Console.Write(displayElement.Value);
+            Console.SetCursorPosition(0, y + 1);
+            Console.BackgroundColor = selected ? Program.ForeColor : Program.BackColor;
+            Console.ForegroundColor = selected ? Program.BackColor : Program.ForeColor;
+            Console.Write(FitWidth(text, false));
         }
 
         private static void WriteStored()
@@ -189,7 +168,7 @@ namespace FileManagerCLI
             var previous = _selected;
             _selected = _displayItems[newSelectedIndex];
 
-            if (newSelectedIndex > (_offset + _display.First().Length - 2))
+            if (newSelectedIndex > (_offset + WindowSize.Height - 1))
             {
                 _offset += 10;
                 Display(_displayItems, _offset);
@@ -203,14 +182,14 @@ namespace FileManagerCLI
                 return;
             }
 
-            EnterLine(previous.DisplayName, currentSlectedIndex - _offset, false);
-            EnterLine(_selected.DisplayName, newSelectedIndex - _offset, true);
+            OutPutDisplay(previous.DisplayName, currentSlectedIndex - _offset + 1, false);
+            OutPutDisplay(_selected.DisplayName, newSelectedIndex - _offset + 1, true);
         }
 
-        private static string FitWidth(string format, bool keepStart) => (format ?? "").Length > _display.Length
+        private static string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
             ? keepStart
-                ? (format ?? "")[.._display.Length]
-                : (format ?? "").Substring((format ?? "").Length - _display.Length, _display.Length)
-            : (format ?? "").PadRight(_display.Length, ' ');
+                ? (format ?? "")[..WindowSize.Width]
+                : (format ?? "").Substring((format ?? "").Length - WindowSize.Width, WindowSize.Width)
+            : (format ?? "").PadRight(WindowSize.Width, ' ');
     }
 }
