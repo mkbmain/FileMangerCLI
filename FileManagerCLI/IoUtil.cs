@@ -5,9 +5,9 @@ using FileManagerCLI.Data;
 
 namespace FileManagerCLI
 {
-    public static class GetIoInfo
+    public static class IoUtil
     {
-        public static readonly string PathSeparator = System.IO.Path.Combine(" ", " ").Trim();
+        public static readonly string PathSeparator = Path.Combine(" ", " ").Trim();
 
         public static IEnumerable<IoItem> GetDetailsForPath(string path)
         {
@@ -36,6 +36,33 @@ namespace FileManagerCLI
             }
 
             return part;
+        }
+        
+        public static void DirectoryCopy(string sourceDirName, string destDirName)
+        {
+            // Get the subdirectories for the specified directory.
+            var dir = new DirectoryInfo(sourceDirName);
+
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    $"Source directory does not exist or could not be found: {sourceDirName}");
+            }
+
+            // If the destination directory doesn't exist, create it.       
+            Directory.CreateDirectory(destDirName);
+
+            foreach (var file in dir.GetFiles())
+            {
+                var tempPath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(tempPath, false);
+            }
+
+            foreach (var subdir in dir.GetDirectories())
+            {
+                var tempPath = Path.Combine(destDirName, subdir.Name);
+                DirectoryCopy(subdir.FullName, tempPath);
+            }
         }
     }
 }

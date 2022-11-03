@@ -13,11 +13,22 @@ namespace FileManagerCLI
         private const int HeightOffset = 3;
         private int StartLeft;
         private string _xxPath;
+        private static StoredIoItem _xxstored;   // we only want 1 stored globally
         private int _maxWidth = int.MaxValue;
         private IoItem _selected;
         private List<IoItem> _displayItems = new List<IoItem>();
         private int _offset = 0;
-        private static StoredIoItem _stored = null;
+
+        private StoredIoItem _stored
+        {
+            get => _xxstored;
+            set
+            {
+                _xxstored = value;
+                WriteStored();
+            }
+        }
+
         private bool ShowHidden = true;
 
         public FileManagerDisplay(int maxWidth = int.MaxValue, int startLeft = 0)
@@ -33,12 +44,12 @@ namespace FileManagerCLI
             set
             {
                 _xxPath = value;
-                if (_xxPath.EndsWith(GetIoInfo.PathSeparator) == false)
+                if (_xxPath.EndsWith(IoUtil.PathSeparator) == false)
                 {
-                    _xxPath += GetIoInfo.PathSeparator;
+                    _xxPath += IoUtil.PathSeparator;
                 }
 
-                var items = GetIoInfo.GetDetailsForPath(Path).Where(e => ShowHidden || e.Hidden == false).ToList();
+                var items = IoUtil.GetDetailsForPath(Path).Where(e => ShowHidden || e.Hidden == false).ToList();
                 _selected = items.First();
                 Display(items);
             }
@@ -79,9 +90,10 @@ namespace FileManagerCLI
                 OutPutDisplay(" ", i + 1 - _offset, false);
             }
 
-            Console.SetCursorPosition(StartLeft, Console.WindowHeight - 1);
+            Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width, ' '));
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width,
+                    ' '));
         }
 
 
@@ -108,6 +120,28 @@ namespace FileManagerCLI
             Console.Write(FitWidth(_stored?.FullPath, false));
         }
 
+        public bool Copy()
+        {
+            if (_stored is null)
+            {
+                return false;
+            }
+
+            switch (_stored.IoType)
+            {
+                case IoItemType.File:
+                    File.Copy(_stored.FullPath, System.IO.Path.Combine(Path, _stored.Name), true);
+                    Path = Path;
+                    return true;
+                case IoItemType.Directory:
+                    IoUtil.DirectoryCopy(_stored.FullPath, System.IO.Path.Combine(Path, _stored.Name));
+                    Path = Path;
+                    return true;
+            }
+
+            return false;
+        }
+
         public void Store()
         {
             switch (_selected.IoType)
@@ -115,9 +149,27 @@ namespace FileManagerCLI
                 case IoItemType.File:
                 case IoItemType.Directory:
                     _stored = new StoredIoItem(_selected, Path);
-                    WriteStored();
                     break;
             }
+        }
+
+        public void Move()
+        {
+            if (!Copy()) return;
+            switch (_stored.IoType)
+            {
+                case IoItemType.File:
+                    System.IO.File.Delete(_stored.FullPath);
+                    break;
+                case IoItemType.Directory:
+                    System.IO.Directory.Delete(_stored.FullPath);
+                    break;
+                default:
+                    return;
+                    break;
+            }
+
+            _stored = null;
         }
 
         public void Delete()
@@ -129,7 +181,7 @@ namespace FileManagerCLI
                     System.IO.File.Delete(path);
                     break;
                 case IoItemType.Directory:
-                    System.IO.Directory.Delete(path);
+                    System.IO.Directory.Delete(path, true);
                     break;
                 default:
                     return;

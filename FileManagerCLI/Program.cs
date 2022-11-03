@@ -8,12 +8,20 @@ namespace FileManagerCLI
         public static Config Config = new Config();
         private const string ConfigFileName = "config.json";
 
-        private static void IfMod(ConsoleModifiers modifier, Action invoke)
+        private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
         {
-            if (modifier.HasFlag(Config.ModKey))
+            invoke();
+            return true;
+        });
+
+        private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke)
+        {
+            if (modifiers.HasFlag(Config.ModKey))
             {
-                invoke();
+                return invoke();
             }
+
+            return default;
         }
 
         static void Main(string[] args)
@@ -44,6 +52,12 @@ namespace FileManagerCLI
                         break;
                     case ConsoleKey.H:
                         display1.ToggleHidden();
+                        break;
+                    case ConsoleKey.M:
+                        display1.Move();
+                        break;
+                    case ConsoleKey.C:
+                        display1.Copy();
                         break;
                     case ConsoleKey.D:
                         IfMod(readKey.Modifiers, display1.Delete);
