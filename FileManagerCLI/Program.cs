@@ -63,7 +63,15 @@ namespace FileManagerCLI
                         IfMod(readKey.Modifiers, display1.Delete);
                         break;
                     case ConsoleKey.S:
-                        display1.Store();
+                        if (!IfMod(readKey.Modifiers, () =>
+                            {
+                                display1.ClearStore();
+                                return true;
+                            }))
+                        {
+                            display1.Store(); 
+                        }
+                      
                         break;
                 }
             }

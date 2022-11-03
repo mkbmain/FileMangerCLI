@@ -90,10 +90,15 @@ namespace FileManagerCLI
                 OutPutDisplay(" ", i + 1 - _offset, false);
             }
 
+            WriteMenu();
+        }
+
+        private  void WriteMenu()
+        {
+            var storedDetails = _stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width,
-                    ' '));
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Hidden:H | Store:S{storedDetails}".PadRight(WindowSize.Width, ' '));
         }
 
 
@@ -118,6 +123,7 @@ namespace FileManagerCLI
             Console.ForegroundColor = Program.Config.ForegroundColor;
             Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
             Console.Write(FitWidth(_stored?.FullPath, false));
+            WriteMenu();
         }
 
         public bool Copy()
@@ -140,6 +146,11 @@ namespace FileManagerCLI
             }
 
             return false;
+        }
+
+        public void ClearStore()
+        {
+            _stored = null;
         }
 
         public void Store()
