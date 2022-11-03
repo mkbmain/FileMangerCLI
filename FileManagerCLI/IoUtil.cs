@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace FileManagerCLI
                 {
                     Name = w.Name,
                     IoType = IoItemType.Directory,
-                    Hidden = w.Attributes.HasFlag(FileAttributes.Hidden )
+                    Hidden = w.Attributes.HasFlag(FileAttributes.Hidden)
                 })
                 .OrderBy(w => w.Name);
 
@@ -29,7 +30,7 @@ namespace FileManagerCLI
             }).OrderBy(w => w.Name);
 
             var part = folders.Concat(files);
-            
+
             if (path.ToCharArray().Count(x => PathSeparator.First() == x) > 1)
             {
                 return new[] {new IoItem {Hidden = false, IoType = IoItemType.Back, Name = ".."}}.Concat(part);
@@ -37,7 +38,19 @@ namespace FileManagerCLI
 
             return part;
         }
-        
+
+        private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; //Longs run out around EB
+
+        public static string BytesToString(long byteCount)
+        {
+            if (byteCount == 0)
+                return "0" + Suffix[0];
+            var bytes = Math.Abs(byteCount);
+            var place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
+            var num = Math.Round(bytes / Math.Pow(1024, place), 1);
+            return (Math.Sign(byteCount) * num).ToString() + Suffix[place];
+        }
+
         public static void DirectoryCopy(string sourceDirName, string destDirName)
         {
             // Get the subdirectories for the specified directory.
