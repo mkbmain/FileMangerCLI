@@ -21,34 +21,29 @@ namespace FileManagerCLI
         {
             Console.Title = "FileManager";
             Console.Clear();
-            FileManagerDisplay.InitDisplay();
+            var display1 = new FileManagerDisplay();
             while (true)
             {
                 var readKey = Console.ReadKey(true);
                 switch (readKey.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        FileManagerDisplay.ChangeSelected(true);
+                        display1.ChangeSelected(true);
                         break;
                     case ConsoleKey.DownArrow:
-                        FileManagerDisplay.ChangeSelected(false);
+                        display1.ChangeSelected(false);
                         break;
-
                     case ConsoleKey.Enter:
-                        FileManagerDisplay.Select();
+                        display1.Select();
                         break;
                     case ConsoleKey.H:
-                        FileManagerDisplay.ToggleHidden();
+                        display1.ToggleHidden();
                         break;
-
                     case ConsoleKey.D:
-                        IfMod(readKey.Modifiers, FileManagerDisplay.Delete);
+                        IfMod(readKey.Modifiers, display1.Delete);
                         break;
                     case ConsoleKey.S:
-                        FileManagerDisplay.Store();
-                        break;
-                    case ConsoleKey.Q:
-                        IfMod(readKey.Modifiers, Console.Clear);
+                        display1.Store();
                         break;
                 }
             }

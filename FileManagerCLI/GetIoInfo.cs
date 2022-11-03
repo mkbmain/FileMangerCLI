@@ -7,7 +7,7 @@ namespace FileManagerCLI
 {
     public static class GetIoInfo
     {
-        public static string PathSeparator = System.IO.Path.Combine(" ", " ").Trim();
+        public static readonly string PathSeparator = System.IO.Path.Combine(" ", " ").Trim();
 
         public static IEnumerable<IoItem> GetDetailsForPath(string path)
         {
