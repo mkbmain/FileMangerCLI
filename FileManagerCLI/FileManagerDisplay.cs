@@ -98,7 +98,7 @@ namespace FileManagerCLI
             var storedDetails = _stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Hidden:H | Store:S{storedDetails}".PadRight(WindowSize.Width, ' '));
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Delete:Mod+D | Hidden:H | Store:S{storedDetails}".PadRight(WindowSize.Width, ' '));
         }
 
 
