@@ -81,7 +81,7 @@ namespace FileManagerCLI
 
             Console.SetCursorPosition(StartLeft, Console.WindowHeight - 1);
             Console.Write(
-                $"Mod = {Program.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width, ' '));
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width, ' '));
         }
 
 
@@ -95,15 +95,15 @@ namespace FileManagerCLI
             }
 
             Console.SetCursorPosition(StartLeft, y + 1);
-            Console.BackgroundColor = selected ? Program.ForeColor : Program.BackColor;
-            Console.ForegroundColor = selected ? Program.BackColor : Program.ForeColor;
+            Console.BackgroundColor = selected ? Program.Config.ForegroundColor : Program.Config.BackgroundColor;
+            Console.ForegroundColor = selected ? Program.Config.BackgroundColor : Program.Config.ForegroundColor;
             Console.Write(FitWidth(text, false));
         }
 
         private void WriteStored()
         {
-            Console.BackgroundColor = Program.BackColor;
-            Console.ForegroundColor = Program.ForeColor;
+            Console.BackgroundColor = Program.Config.BackgroundColor;
+            Console.ForegroundColor = Program.Config.ForegroundColor;
             Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
             Console.Write(FitWidth(_stored?.FullPath, false));
         }

@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Linq;
+using System.IO;
 
 namespace FileManagerCLI
 {
     class Program
     {
-        public static ConsoleColor BackColor = ConsoleColor.White;
-        public static ConsoleColor ForeColor = ConsoleColor.Black;
-        public static ConsoleModifiers ModKey = ConsoleModifiers.Control;
+        public static Config Config = new Config();
+        private const string ConfigFileName = "config.json";
 
         private static void IfMod(ConsoleModifiers modifier, Action invoke)
         {
-            if (modifier.HasFlag(ModKey))
+            if (modifier.HasFlag(Config.ModKey))
             {
                 invoke();
             }
@@ -19,8 +18,15 @@ namespace FileManagerCLI
 
         static void Main(string[] args)
         {
-            Console.Title = "FileManager";
             Console.Clear();
+            Console.Title = "FileManager";
+            if (File.Exists(ConfigFileName))
+            {
+                var json = System.IO.File.ReadAllText(ConfigFileName);
+                var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
+                Config = config;
+            }
+
             var display1 = new FileManagerDisplay();
             while (true)
             {
