@@ -104,7 +104,7 @@ namespace FileManagerCLI
         {
             Console.BackgroundColor = Program.BackColor;
             Console.ForegroundColor = Program.ForeColor;
-            Console.SetCursorPosition(StartLeft, 1);
+            Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
             Console.Write(FitWidth(_stored?.FullPath, false));
         }
 
