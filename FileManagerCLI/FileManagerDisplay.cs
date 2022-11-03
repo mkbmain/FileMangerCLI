@@ -17,7 +17,7 @@ namespace FileManagerCLI
         private IoItem _selected;
         private List<IoItem> _displayItems = new List<IoItem>();
         private int _offset = 0;
-        private StoredIoItem _stored = null;
+        private static StoredIoItem _stored = null;
         private bool ShowHidden = true;
 
         public FileManagerDisplay(int maxWidth = int.MaxValue, int startLeft = 0)
