@@ -7,19 +7,27 @@ using FileManagerCLI.Data;
 
 namespace FileManagerCLI
 {
-    public static class FileManagerDisplay
+    public class FileManagerDisplay
     {
-        private static Size WindowSize;
+        private Size WindowSize;
         private const int HeightOffset = 3;
-        private static string _xxPath;
-        private static int _maxWidth = int.MaxValue;
-        private static IoItem _selected;
-        private static List<IoItem> _displayItems = new List<IoItem>();
-        private static int _offset = 0;
-        private static StoredIoItem _stored = null;
-        private static bool ShowHidden = true;
+        private int StartLeft;
+        private string _xxPath;
+        private int _maxWidth = int.MaxValue;
+        private IoItem _selected;
+        private List<IoItem> _displayItems = new List<IoItem>();
+        private int _offset = 0;
+        private StoredIoItem _stored = null;
+        private bool ShowHidden = true;
 
-        private static string Path
+        public FileManagerDisplay(int maxWidth = int.MaxValue, int startLeft = 0)
+        {
+            StartLeft = startLeft;
+            _maxWidth = maxWidth;
+            Path = Environment.CurrentDirectory;
+        }
+
+        private string Path
         {
             get => _xxPath;
             set
@@ -36,34 +44,30 @@ namespace FileManagerCLI
             }
         }
 
-        public static void InitDisplay(int maxWidth = int.MaxValue)
-        {
-            _maxWidth = maxWidth;
-            Path = Environment.CurrentDirectory;
-        }
 
-        private static void Display(IEnumerable<IoItem> items)
+        private void Display(IEnumerable<IoItem> items)
         {
             _offset = 0;
             Display(items, _offset);
         }
 
-        private static void Display(IEnumerable<IoItem> items, int offset)
+        private void Display(IEnumerable<IoItem> items, int offset)
         {
             Console.Clear();
             _offset = offset;
             _displayItems = items.ToList();
             BuildDisplay(_maxWidth);
 
-            Console.SetCursorPosition(0, 0);
+            Console.SetCursorPosition(StartLeft, 0);
             Console.WriteLine(FitWidth(Path, false));
             WriteStored();
         }
 
-        private static void BuildDisplay(int maxWidth)
+        private void BuildDisplay(int maxWidth)
         {
             _maxWidth = maxWidth;
-            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth), Console.WindowHeight - HeightOffset);
+            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth - StartLeft),
+                Console.WindowHeight - HeightOffset);
             int i = 0;
             for (i = _offset; i < Math.Min(_displayItems.Count, WindowSize.Height + _offset); i++)
             {
@@ -75,37 +79,36 @@ namespace FileManagerCLI
                 OutPutDisplay(" ", i + 1 - _offset, false);
             }
 
-            Console.SetCursorPosition(0, Console.WindowHeight - 1);
+            Console.SetCursorPosition(StartLeft, Console.WindowHeight - 1);
             Console.Write(
                 $"Mod = {Program.ModKey.ToString()} | Exit:Mod+q | Hidden:H | Store:S".PadRight(WindowSize.Width, ' '));
         }
 
 
-
-        private static void OutPutDisplay(string text, int y, bool selected)
+        private void OutPutDisplay(string text, int y, bool selected)
         {
-            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth) ||
+            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth - StartLeft) ||
                 WindowSize.Height != Console.WindowHeight - HeightOffset)
             {
                 Display(_displayItems, _offset);
                 return;
             }
 
-            Console.SetCursorPosition(0, y + 1);
+            Console.SetCursorPosition(StartLeft, y + 1);
             Console.BackgroundColor = selected ? Program.ForeColor : Program.BackColor;
             Console.ForegroundColor = selected ? Program.BackColor : Program.ForeColor;
             Console.Write(FitWidth(text, false));
         }
 
-        private static void WriteStored()
+        private void WriteStored()
         {
             Console.BackgroundColor = Program.BackColor;
             Console.ForegroundColor = Program.ForeColor;
-            Console.SetCursorPosition(0, 1);
+            Console.SetCursorPosition(StartLeft, 1);
             Console.Write(FitWidth(_stored?.FullPath, false));
         }
 
-        public static void Store()
+        public void Store()
         {
             switch (_selected.IoType)
             {
@@ -117,7 +120,7 @@ namespace FileManagerCLI
             }
         }
 
-        public static void Delete()
+        public void Delete()
         {
             var path = System.IO.Path.Combine(Path, _selected.Name);
             switch (_selected.IoType)
@@ -137,16 +140,17 @@ namespace FileManagerCLI
             {
                 _stored = null;
             }
+
             Path = Path;
         }
 
-        public static void ToggleHidden()
+        public void ToggleHidden()
         {
             ShowHidden = !ShowHidden;
             Path = Path;
         }
 
-        public static void Select()
+        public void Select()
         {
             switch (_selected.IoType)
             {
@@ -159,7 +163,7 @@ namespace FileManagerCLI
             }
         }
 
-        public static void ChangeSelected(bool up)
+        public void ChangeSelected(bool up)
         {
             var currentSlectedIndex = _displayItems.IndexOf(_selected);
             if ((up && currentSlectedIndex == 0) || (!up && currentSlectedIndex == _displayItems.Count - 1)) return;
@@ -186,7 +190,7 @@ namespace FileManagerCLI
             OutPutDisplay(_selected.DisplayName, newSelectedIndex - _offset + 1, true);
         }
 
-        private static string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
+        private string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
             ? keepStart
                 ? (format ?? "")[..WindowSize.Width]
                 : (format ?? "").Substring((format ?? "").Length - WindowSize.Width, WindowSize.Width)
