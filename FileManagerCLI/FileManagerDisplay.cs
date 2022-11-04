@@ -13,7 +13,7 @@ namespace FileManagerCLI
         private const int HeightOffset = 3;
         private int StartLeft;
         private string _xxPath;
-        private static StoredIoItem _xxstored;   // we only want 1 stored globally
+        private static StoredIoItem _xxstored; // we only want 1 stored globally
         private int _maxWidth = int.MaxValue;
         private IoItem _selected;
         private List<IoItem> _displayItems = new List<IoItem>();
@@ -85,20 +85,21 @@ namespace FileManagerCLI
                 OutPutDisplay(_displayItems[i].DisplayName, i + 1 - _offset, _displayItems[i] == _selected);
             }
 
-            for (i = i; i < WindowSize.Height; i++)
+            for (i = i - _offset; i < WindowSize.Height; i++)
             {
-                OutPutDisplay(" ", i + 1 - _offset, false);
+                OutPutDisplay(" ", i + 1 , false);
             }
 
             WriteMenu();
         }
 
-        private  void WriteMenu()
+        private void WriteMenu()
         {
             var storedDetails = _stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
-            Console.Write(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Delete:Mod+D | Hidden:H | Store:S{storedDetails}".PadRight(WindowSize.Width, ' '));
+            Console.Write(FitWidth(
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
+                    .PadRight(WindowSize.Width, ' '), true));
         }
 
 
