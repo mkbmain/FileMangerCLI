@@ -14,24 +14,24 @@ namespace FileManagerCLI.FileManager
 
         public bool Copy()
         {
-            if (Stored is null)
-            {
-                return false;
-            }
-
+            if (Stored is null) return false;
+            
+            var newPath = System.IO.Path.Combine(Path, Stored.Name);
+            if (newPath == Stored.FullPath) return false;
+            
             switch (Stored.IoType)
             {
                 case IoItemType.File:
-                    File.Copy(Stored.FullPath, System.IO.Path.Combine(Path, Stored.Name), true);
-                    Path = Path;
-                    return true;
+                    File.Copy(Stored.FullPath, newPath, true);
+                    break;
                 case IoItemType.Directory:
-                    FileIoUtil.DirectoryCopy(Stored.FullPath, System.IO.Path.Combine(Path, Stored.Name));
-                    Path = Path;
-                    return true;
+                    FileIoUtil.DirectoryCopy(Stored.FullPath, newPath);
+                    break;
+                default:
+                    return false;
             }
-
-            return false;
+            Path = Path;
+            return true;
         }
 
         public void ClearStore()

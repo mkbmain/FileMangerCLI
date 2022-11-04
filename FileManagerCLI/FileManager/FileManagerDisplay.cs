@@ -30,7 +30,7 @@ namespace FileManagerCLI.FileManager
             }
         }
 
-        public FileManagerDisplay(int maxWidth, int startLeft)
+        protected FileManagerDisplay(int maxWidth, int startLeft)
         {
             _startLeft = startLeft;
             _maxWidth = maxWidth;
