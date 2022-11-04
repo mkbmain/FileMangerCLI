@@ -27,10 +27,10 @@ namespace FileManagerCLI
                 switch (readKey.Key)
                 {
                     case ConsoleKey.UpArrow:
-                        display1.ChangeSelected(true);
+                        display1.MoveSelected(true);
                         break;
                     case ConsoleKey.DownArrow:
-                        display1.ChangeSelected(false);
+                        display1.MoveSelected(false);
                         break;
                     case ConsoleKey.Enter:
                         display1.Select();

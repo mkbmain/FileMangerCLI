@@ -1,3 +1,5 @@
+using FileManagerCLI.Enums;
+
 namespace FileManagerCLI.Data
 {
     public class IoItemDetails

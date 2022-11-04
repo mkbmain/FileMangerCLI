@@ -12,6 +12,6 @@ namespace FileManagerCLI.Data
             this.IoType = item.IoType;
         }
 
-        public string FullPath { get; set; }
+        public string FullPath { get; }
     }
 }

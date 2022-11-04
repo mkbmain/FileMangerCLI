@@ -12,15 +12,15 @@ namespace FileManagerCLI.FileManager
         protected bool ShowHidden = true;
         protected Size WindowSize;
         private const int HeightOffset = 3;
-        private int StartLeft;
+        private readonly int _startLeft;
         private string _xxPath;
         private static StoredIoItem _xxstored; // we only want 1 stored globally
         private int _maxWidth = int.MaxValue;
-        protected IoItem _selected;
-        protected List<IoItem> _displayItems = new List<IoItem>();
-        protected int _offset = 0;
+        protected IoItem Selected;
+        protected List<IoItem> DisplayItems = new List<IoItem>();
+        protected int Offset;
 
-        protected StoredIoItem _stored
+        protected StoredIoItem Stored
         {
             get => _xxstored;
             set
@@ -30,10 +30,9 @@ namespace FileManagerCLI.FileManager
             }
         }
 
-
         public FileManagerDisplay(int maxWidth, int startLeft)
         {
-            StartLeft = startLeft;
+            _startLeft = startLeft;
             _maxWidth = maxWidth;
             Path = Environment.CurrentDirectory;
         }
@@ -50,42 +49,35 @@ namespace FileManagerCLI.FileManager
                 }
 
                 var items = FileIoUtil.GetDetailsForPath(Path).Where(e => ShowHidden || e.Hidden == false).ToList();
-                _selected = items.First();
-                Display(items);
+                Selected = items.First();
+                Display(items, 0);
             }
-        }
-
-
-        protected void Display(IEnumerable<IoItem> items)
-        {
-            _offset = 0;
-            Display(items, _offset);
         }
 
         protected void Display(IEnumerable<IoItem> items, int offset)
         {
             Console.Clear();
-            _offset = offset;
-            _displayItems = items.ToList();
+            Offset = offset;
+            DisplayItems = items.ToList();
             BuildDisplay(_maxWidth);
 
-            Console.SetCursorPosition(StartLeft, 0);
+            Console.SetCursorPosition(_startLeft, 0);
             Console.WriteLine(FitWidth(Path, false));
             WriteStored();
         }
 
-        protected void BuildDisplay(int maxWidth)
+        private void BuildDisplay(int maxWidth)
         {
             _maxWidth = maxWidth;
-            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth - StartLeft),
+            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth - _startLeft),
                 Console.WindowHeight - HeightOffset);
-            int i = 0;
-            for (i = _offset; i < Math.Min(_displayItems.Count, WindowSize.Height + _offset); i++)
+            int i;
+            for (i = Offset; i < Math.Min(DisplayItems.Count, WindowSize.Height + Offset); i++)
             {
-                OutPutDisplay(_displayItems[i].DisplayName, i - _offset, _displayItems[i] == _selected);
+                OutPutDisplay(DisplayItems[i].DisplayName, i - Offset, DisplayItems[i] == Selected);
             }
 
-            for (i = i - _offset; i < WindowSize.Height; i++)
+            for (i -= Offset; i < WindowSize.Height; i++)
             {
                 OutPutDisplay(" ", i, false);
             }
@@ -93,9 +85,9 @@ namespace FileManagerCLI.FileManager
             WriteMenu();
         }
 
-        protected void WriteMenu()
+        private void WriteMenu()
         {
-            var storedDetails = _stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
+            var storedDetails = Stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(FitWidth(
                 $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
@@ -105,30 +97,30 @@ namespace FileManagerCLI.FileManager
 
         protected void OutPutDisplay(string text, int y, bool selected)
         {
-            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth - StartLeft) ||
+            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth - _startLeft) ||
                 WindowSize.Height != Console.WindowHeight - HeightOffset)
             {
-                Display(_displayItems, _offset);
+                Display(DisplayItems, Offset);
                 return;
             }
 
-            Console.SetCursorPosition(StartLeft, y + 2);
+            Console.SetCursorPosition(_startLeft, y + 2);
             Console.BackgroundColor = selected ? Program.Config.ForegroundColor : Program.Config.BackgroundColor;
             Console.ForegroundColor = selected ? Program.Config.BackgroundColor : Program.Config.ForegroundColor;
             Console.Write(FitWidth(text, false));
         }
 
-        protected void WriteStored()
+        private void WriteStored()
         {
             Console.BackgroundColor = Program.Config.BackgroundColor;
             Console.ForegroundColor = Program.Config.ForegroundColor;
             Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
-            Console.Write(FitWidth(_stored?.FullPath, false));
+            Console.Write(FitWidth(Stored?.FullPath, false));
             WriteMenu();
         }
 
 
-        protected string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
+        private string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
             ? keepStart
                 ? (format ?? "")[..WindowSize.Width]
                 : (format ?? "").Substring((format ?? "").Length - WindowSize.Width, WindowSize.Width)

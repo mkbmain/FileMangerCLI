@@ -1,5 +1,6 @@
 using System.IO;
 using FileManagerCLI.Data;
+using FileManagerCLI.Enums;
 using FileManagerCLI.Utils;
 
 namespace FileManagerCLI.FileManager
@@ -13,19 +14,19 @@ namespace FileManagerCLI.FileManager
 
         public bool Copy()
         {
-            if (_stored is null)
+            if (Stored is null)
             {
                 return false;
             }
 
-            switch (_stored.IoType)
+            switch (Stored.IoType)
             {
                 case IoItemType.File:
-                    File.Copy(_stored.FullPath, System.IO.Path.Combine(Path, _stored.Name), true);
+                    File.Copy(Stored.FullPath, System.IO.Path.Combine(Path, Stored.Name), true);
                     Path = Path;
                     return true;
                 case IoItemType.Directory:
-                    FileIoUtil.DirectoryCopy(_stored.FullPath, System.IO.Path.Combine(Path, _stored.Name));
+                    FileIoUtil.DirectoryCopy(Stored.FullPath, System.IO.Path.Combine(Path, Stored.Name));
                     Path = Path;
                     return true;
             }
@@ -35,16 +36,16 @@ namespace FileManagerCLI.FileManager
 
         public void ClearStore()
         {
-            _stored = null;
+            Stored = null;
         }
 
         public void Store()
         {
-            switch (_selected.IoType)
+            switch (Selected.IoType)
             {
                 case IoItemType.File:
                 case IoItemType.Directory:
-                    _stored = new StoredIoItem(_selected, Path);
+                    Stored = new StoredIoItem(Selected, Path);
                     break;
             }
         }
@@ -52,41 +53,39 @@ namespace FileManagerCLI.FileManager
         public void Move()
         {
             if (!Copy()) return;
-            switch (_stored.IoType)
+            switch (Stored.IoType)
             {
                 case IoItemType.File:
-                    System.IO.File.Delete(_stored.FullPath);
+                    File.Delete(Stored.FullPath);
                     break;
                 case IoItemType.Directory:
-                    System.IO.Directory.Delete(_stored.FullPath);
+                    Directory.Delete(Stored.FullPath);
                     break;
                 default:
                     return;
-                    break;
             }
 
-            _stored = null;
+            Stored = null;
         }
 
         public void Delete()
         {
-            var path = System.IO.Path.Combine(Path, _selected.Name);
-            switch (_selected.IoType)
+            var path = System.IO.Path.Combine(Path, Selected.Name);
+            switch (Selected.IoType)
             {
                 case IoItemType.File:
-                    System.IO.File.Delete(path);
+                    File.Delete(path);
                     break;
                 case IoItemType.Directory:
-                    System.IO.Directory.Delete(path, true);
+                    Directory.Delete(path, true);
                     break;
                 default:
                     return;
-                    break;
             }
 
-            if (_stored?.FullPath == path)
+            if (Stored?.FullPath == path)
             {
-                _stored = null;
+                Stored = null;
             }
 
             Path = Path;
@@ -100,42 +99,42 @@ namespace FileManagerCLI.FileManager
 
         public void Select()
         {
-            switch (_selected.IoType)
+            switch (Selected.IoType)
             {
                 case IoItemType.Directory:
-                    Path = System.IO.Path.Combine(Path, _selected.Name);
+                    Path = System.IO.Path.Combine(Path, Selected.Name);
                     break;
                 case IoItemType.Back:
-                    Path = new DirectoryInfo(Path).Parent.FullName;
+                    Path = new DirectoryInfo(Path).Parent?.FullName;
                     break;
             }
         }
 
-        public void ChangeSelected(bool up)
+        public void MoveSelected(bool up)
         {
-            var currentSlectedIndex = _displayItems.IndexOf(_selected);
-            if ((up && currentSlectedIndex == 0) || (!up && currentSlectedIndex == _displayItems.Count - 1)) return;
+            var selectedIndex = DisplayItems.IndexOf(Selected);
+            if ((up && selectedIndex == 0) || (!up && selectedIndex == DisplayItems.Count - 1)) return;
 
-            var newSelectedIndex = currentSlectedIndex + (up ? -1 : 1);
-            var previous = _selected;
-            _selected = _displayItems[newSelectedIndex];
+            var newSelectedIndex = selectedIndex + (up ? -1 : 1);
+            var previous = Selected;
+            Selected = DisplayItems[newSelectedIndex];
 
-            if (newSelectedIndex > (_offset + WindowSize.Height - 1))
+            if (newSelectedIndex > (Offset + WindowSize.Height - 1))
             {
-                _offset += 10;
-                Display(_displayItems, _offset);
+                Offset += 10;
+                Display(DisplayItems, Offset);
                 return;
             }
 
-            if (newSelectedIndex < _offset)
+            if (newSelectedIndex < Offset)
             {
-                _offset -= 10;
-                Display(_displayItems, _offset);
+                Offset -= 10;
+                Display(DisplayItems, Offset);
                 return;
             }
 
-            OutPutDisplay(previous.DisplayName, currentSlectedIndex - _offset, false);
-            OutPutDisplay(_selected.DisplayName, newSelectedIndex - _offset, true);
+            OutPutDisplay(previous.DisplayName, selectedIndex - Offset, false);
+            OutPutDisplay(Selected.DisplayName, newSelectedIndex - Offset, true);
         }
     }
 }
