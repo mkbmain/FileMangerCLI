@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using FileManagerCLI.FileManager;
 
 namespace FileManagerCLI
 {
@@ -8,23 +9,7 @@ namespace FileManagerCLI
         public static Config Config = new Config();
         private const string ConfigFileName = "config.json";
 
-        private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
-        {
-            invoke();
-            return true;
-        });
-
-        private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke)
-        {
-            if (modifiers.HasFlag(Config.ModKey))
-            {
-                return invoke();
-            }
-
-            return default;
-        }
-
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             Console.Clear();
             Console.Title = "FileManager";
@@ -35,7 +20,7 @@ namespace FileManagerCLI
                 Config = config;
             }
 
-            var display1 = new FileManagerDisplay();
+            var display1 = new FileManagerWindow();
             while (true)
             {
                 var readKey = Console.ReadKey(true);
@@ -69,12 +54,21 @@ namespace FileManagerCLI
                                 return true;
                             }))
                         {
-                            display1.Store(); 
+                            display1.Store();
                         }
-                      
+
                         break;
                 }
             }
         }
+
+        private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
+        {
+            invoke();
+            return true;
+        });
+
+        private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) =>
+            modifiers.HasFlag(Config.ModKey) ? invoke() : default;
     }
 }

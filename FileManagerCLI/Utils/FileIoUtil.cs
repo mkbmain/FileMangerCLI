@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using FileManagerCLI.Data;
 
-namespace FileManagerCLI
+namespace FileManagerCLI.Utils
 {
-    public static class IoUtil
+    public static class FileIoUtil
     {
         public static readonly string PathSeparator = Path.Combine(" ", " ").Trim();
 
