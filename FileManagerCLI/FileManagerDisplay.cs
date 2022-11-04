@@ -82,12 +82,12 @@ namespace FileManagerCLI
             int i = 0;
             for (i = _offset; i < Math.Min(_displayItems.Count, WindowSize.Height + _offset); i++)
             {
-                OutPutDisplay(_displayItems[i].DisplayName, i + 1 - _offset, _displayItems[i] == _selected);
+                OutPutDisplay(_displayItems[i].DisplayName, i  - _offset, _displayItems[i] == _selected);
             }
 
             for (i = i - _offset; i < WindowSize.Height; i++)
             {
-                OutPutDisplay(" ", i + 1 , false);
+                OutPutDisplay(" ", i  , false);
             }
 
             WriteMenu();
@@ -112,7 +112,7 @@ namespace FileManagerCLI
                 return;
             }
 
-            Console.SetCursorPosition(StartLeft, y + 1);
+            Console.SetCursorPosition(StartLeft, y + 2);
             Console.BackgroundColor = selected ? Program.Config.ForegroundColor : Program.Config.BackgroundColor;
             Console.ForegroundColor = selected ? Program.Config.BackgroundColor : Program.Config.ForegroundColor;
             Console.Write(FitWidth(text, false));
@@ -250,8 +250,8 @@ namespace FileManagerCLI
                 return;
             }
 
-            OutPutDisplay(previous.DisplayName, currentSlectedIndex - _offset + 1, false);
-            OutPutDisplay(_selected.DisplayName, newSelectedIndex - _offset + 1, true);
+            OutPutDisplay(previous.DisplayName, currentSlectedIndex - _offset , false);
+            OutPutDisplay(_selected.DisplayName, newSelectedIndex - _offset , true);
         }
 
         private string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
