@@ -12,10 +12,14 @@ namespace FileManagerCLI.FileManager
         protected bool ShowHidden = true;
         protected Size WindowSize;
         private const int HeightOffset = 3;
-        private readonly int _startLeft;
+
+        private int _startLeft() =>
+            _startLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * _startLeftPercentPercent);
+
+        protected decimal _startLeftPercentPercent = 0m;
         private string _xxPath;
         private static StoredIoItem _xxstored; // we only want 1 stored globally
-        private int _maxWidth = int.MaxValue;
+        protected decimal _widthPercent = 1;
         protected IoItem Selected;
         protected List<IoItem> DisplayItems = new List<IoItem>();
         protected int Offset;
@@ -30,10 +34,10 @@ namespace FileManagerCLI.FileManager
             }
         }
 
-        protected FileManagerDisplay(int maxWidth, int startLeft)
+        protected FileManagerDisplay(decimal widthPercent, decimal startLeftPercent)
         {
-            _startLeft = startLeft;
-            _maxWidth = maxWidth;
+            _widthPercent = widthPercent;
+            _startLeftPercentPercent = startLeftPercent;
             Path = Environment.CurrentDirectory;
         }
 
@@ -58,17 +62,18 @@ namespace FileManagerCLI.FileManager
         {
             Offset = offset;
             DisplayItems = items.ToList();
-            BuildDisplay(_maxWidth);
+            BuildDisplay(_widthPercent);
 
-            Console.SetCursorPosition(_startLeft, 0);
+            Console.SetCursorPosition(_startLeft(), 0);
             Console.WriteLine(FitWidth(Path, false));
             WriteStored();
         }
 
-        private void BuildDisplay(int maxWidth)
+        private void BuildDisplay(decimal widthPercent)
         {
-            _maxWidth = maxWidth;
-            WindowSize = new Size(Math.Min(_maxWidth, Console.WindowWidth - _startLeft),
+            this._widthPercent = widthPercent;
+            WindowSize = new Size(
+                Math.Min((int) (Console.WindowWidth * widthPercent), Console.WindowWidth - _startLeft()),
                 Console.WindowHeight - HeightOffset);
             int i;
             for (i = Offset; i < Math.Min(DisplayItems.Count, WindowSize.Height + Offset); i++)
@@ -90,20 +95,21 @@ namespace FileManagerCLI.FileManager
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(FitWidth(
                 $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
-                    .PadRight(WindowSize.Width, ' '), true));
+                    .PadRight(WindowSize.Width, ' '), true, Console.WindowWidth));
         }
 
 
         protected void OutPutDisplay(string text, int y, bool selected)
         {
-            if (WindowSize.Width != Math.Min(_maxWidth, Console.WindowWidth - _startLeft) ||
+            if (WindowSize.Width !=
+                Math.Min((int) (Console.WindowWidth * _widthPercent), Console.WindowWidth - _startLeft()) ||
                 WindowSize.Height != Console.WindowHeight - HeightOffset)
             {
                 Display(DisplayItems, Offset);
                 return;
             }
 
-            Console.SetCursorPosition(_startLeft, y + 2);
+            Console.SetCursorPosition(_startLeft(), y + 2);
             Console.BackgroundColor = selected ? Program.Config.ForegroundColor : Program.Config.BackgroundColor;
             Console.ForegroundColor = selected ? Program.Config.BackgroundColor : Program.Config.ForegroundColor;
             Console.Write(FitWidth(text, false));
@@ -114,15 +120,17 @@ namespace FileManagerCLI.FileManager
             Console.BackgroundColor = Program.Config.BackgroundColor;
             Console.ForegroundColor = Program.Config.ForegroundColor;
             Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
-            Console.Write(FitWidth(Stored?.FullPath, false));
+            Console.Write(FitWidth(Stored?.FullPath ?? "", false, Console.WindowWidth));
             WriteMenu();
         }
 
 
-        private string FitWidth(string format, bool keepStart) => (format ?? "").Length > WindowSize.Width
+        private string FitWidth(string format, bool keepStart) => FitWidth(format ?? "", keepStart, WindowSize.Width);
+
+        private string FitWidth(string format, bool keepStart, int width) => format.Length > width
             ? keepStart
-                ? (format ?? "")[..WindowSize.Width]
-                : (format ?? "").Substring((format ?? "").Length - WindowSize.Width, WindowSize.Width)
-            : (format ?? "").PadRight(WindowSize.Width, ' ');
+                ? format[..width]
+                : format.Substring(format.Length - width, width)
+            : format.PadRight(width, ' ');
     }
 }

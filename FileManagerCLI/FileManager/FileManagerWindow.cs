@@ -7,17 +7,25 @@ namespace FileManagerCLI.FileManager
 {
     public class FileManagerWindow : FileManagerDisplay
     {
-        public FileManagerWindow(int maxWidth = int.MaxValue, int startLeft = 0) : base(maxWidth, startLeft)
+        public FileManagerWindow(decimal widthPercent = 1, decimal startLeftPercent = 0) : base(widthPercent,
+            startLeftPercent)
         {
+        }
+
+        public void UpdateDisplayDetails(decimal widthPercent, decimal startLeftPercent)
+        {
+            _widthPercent = widthPercent;
+            _startLeftPercentPercent = startLeftPercent;
+            Redraw();
         }
 
         public bool Copy()
         {
             if (Stored is null) return false;
-            
+
             var newPath = System.IO.Path.Combine(Path, Stored.Name);
             if (newPath == Stored.FullPath) return false;
-            
+
             switch (Stored.IoType)
             {
                 case IoItemType.File:
@@ -29,6 +37,7 @@ namespace FileManagerCLI.FileManager
                 default:
                     return false;
             }
+
             Path = Path;
             return true;
         }
@@ -108,6 +117,8 @@ namespace FileManagerCLI.FileManager
                     break;
             }
         }
+
+        public void Redraw() => Display(DisplayItems, Offset);
 
         public void MoveSelected(bool up)
         {
