@@ -7,8 +7,7 @@ namespace FileManagerCLI.FileManager
 {
     public class FileManagerWindow : FileManagerDisplay
     {
-        public FileManagerWindow(int maxWidth = int.MaxValue, int startLeft = 0) : base(maxWidth = maxWidth,
-            startLeft = startLeft)
+        public FileManagerWindow(int maxWidth = int.MaxValue, int startLeft = 0) : base(maxWidth, startLeft)
         {
         }
 

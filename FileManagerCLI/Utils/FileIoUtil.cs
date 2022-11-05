@@ -40,16 +40,15 @@ namespace FileManagerCLI.Utils
             return part;
         }
 
-        private static readonly string[] Suffix = {"B", "KB", "MB", "GB", "TB", "PB", "EB"}; //Longs run out around EB
+        private static readonly string[] Suffix = {"", "K", "M", "G", "T", "P", "E"}; //Longs run out around EB
 
         public static string BytesToString(long byteCount)
         {
-            if (byteCount == 0)
-                return "0" + Suffix[0];
+            if (byteCount == 0) return $"0{Suffix[0]}";
             var bytes = Math.Abs(byteCount);
             var place = Convert.ToInt32(Math.Floor(Math.Log(bytes, 1024)));
             var num = Math.Round(bytes / Math.Pow(1024, place), 1);
-            return (Math.Sign(byteCount) * num).ToString() + Suffix[place];
+            return $"{(Math.Sign(byteCount) * num)}{Suffix[place]}B";
         }
 
         public static void DirectoryCopy(string sourceDirName, string destDirName)
