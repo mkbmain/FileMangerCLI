@@ -56,7 +56,6 @@ namespace FileManagerCLI.FileManager
 
         protected void Display(IEnumerable<IoItem> items, int offset)
         {
-            Console.Clear();
             Offset = offset;
             DisplayItems = items.ToList();
             BuildDisplay(_maxWidth);
