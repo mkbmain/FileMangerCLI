@@ -118,6 +118,11 @@ namespace FileManagerCLI.FileManager
             }
         }
 
+        public void EditLocation()
+        {
+            
+        }
+
         public void Redraw() => Display(DisplayItems, Offset);
 
         public void MoveSelected(bool up)

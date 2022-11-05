@@ -31,7 +31,7 @@ namespace FileManagerCLI
             Console.Title = "FileManager";
             if (File.Exists(ConfigFileName))
             {
-                var json = System.IO.File.ReadAllText(ConfigFileName);
+                var json = File.ReadAllText(ConfigFileName);
                 var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
                 Config = config;
             }
@@ -94,6 +94,9 @@ namespace FileManagerCLI
                         break;
                     case ConsoleKey.Enter:
                         selectedDisplay.Select();
+                        break;
+                    case ConsoleKey.L:
+                        IfMod(readKey.Modifiers, () => selectedDisplay.EditLocation());
                         break;
                     case ConsoleKey.H:
                         selectedDisplay.ToggleHidden();
