@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using FileManagerCLI.FileManager;
+using FileManagerCLI.Settings;
 
 namespace FileManagerCLI
 {

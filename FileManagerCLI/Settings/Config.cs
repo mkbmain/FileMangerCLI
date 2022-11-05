@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 
-namespace FileManagerCLI
+namespace FileManagerCLI.Settings
 {
 
     public class Config
