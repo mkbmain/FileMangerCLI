@@ -115,6 +115,9 @@ namespace FileManagerCLI
                     case ConsoleKey.M:
                         selectedDisplay.Move();
                         break;
+                    case ConsoleKey.B:
+                        selectedDisplay.TopDirectory();
+                        break;
                     case ConsoleKey.C:
                         selectedDisplay.Copy();
                         break;

@@ -107,6 +107,15 @@ namespace FileManagerCLI.FileManager
             Path = Path;
         }
 
+        public void TopDirectory()
+        {
+            var back = DisplayItems.FirstOrDefault(w => w.IoType == IoItemType.Back);
+            if(back is null){return;}
+
+            Selected = back;
+            Select();
+        }
+
         public void Select()
         {
             switch (Selected.IoType)
@@ -135,7 +144,7 @@ namespace FileManagerCLI.FileManager
                 Console.ForegroundColor = Program.Config.BackgroundColor;
                 Console.SetCursorPosition(0, 0);
                 Console.Write(FitWidth(path, false, Console.WindowWidth));
-                
+
                 var key = Console.ReadKey(true);
                 switch (key.Key)
                 {
@@ -187,6 +196,7 @@ namespace FileManagerCLI.FileManager
                             tab = true;
                             path = System.IO.Path.Combine(partialPath, item.Name);
                         }
+
                         break;
 
                     case ConsoleKey.Delete:

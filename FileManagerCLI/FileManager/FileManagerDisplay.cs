@@ -94,7 +94,7 @@ namespace FileManagerCLI.FileManager
             var storedDetails = Stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.Write(FitWidth(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Dir:Mod+L | AddWindow:Mod+ → | RemoveWindows: mod + ←  | Move To Window:← →  | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
+                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Dir:Mod+L | AddWindow:Mod+ → | RemoveWindows: mod + ←  | UpDir:B | Move To Window:← →  | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
                     .PadRight(WindowSize.Width, ' '), true, Console.WindowWidth));
         }
 
