@@ -13,8 +13,6 @@ namespace FileManagerCLI
     {
         public static Config Config = new Config();
         private const string ConfigFileName = "config.json";
-        private Size Size = new Size(Console.WindowWidth, Console.WindowHeight);
-
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
             var total = fileManagerWindows.Count;
