@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -36,7 +35,7 @@ namespace FileManagerCLI
 
             var displays = new List<FileManagerWindow>();
             var size = new Size(Console.WindowWidth, Console.WindowHeight);
-            displays.Add(new FileManagerWindow(1, 0));
+            displays.Add(new FileManagerWindow());
             var selectedDisplay = displays.First();
             while (true)
             {
@@ -72,7 +71,7 @@ namespace FileManagerCLI
                     {
                         var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            displays.Add(new FileManagerWindow(0, 0));
+                            displays.Add(new FileManagerWindow());
                             ChangeDisplays(displays);
                             selectedDisplay = displays.Last();
                             return true;

@@ -71,10 +71,10 @@ namespace FileManagerCLI.Utils
                 file.CopyTo(tempPath, false);
             }
 
-            foreach (var subdir in dir.GetDirectories())
+            foreach (var directoryInfo in dir.GetDirectories())
             {
-                var tempPath = Path.Combine(destDirName, subdir.Name);
-                DirectoryCopy(subdir.FullName, tempPath);
+                var tempPath = Path.Combine(destDirName, directoryInfo.Name);
+                DirectoryCopy(directoryInfo.FullName, tempPath);
             }
         }
     }

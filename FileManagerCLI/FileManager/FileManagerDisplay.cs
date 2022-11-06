@@ -14,12 +14,12 @@ namespace FileManagerCLI.FileManager
         private const int HeightOffset = 3;
 
         private int _startLeft() =>
-            _startLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * _startLeftPercentPercent);
+            StartLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * StartLeftPercentPercent);
 
-        protected decimal _startLeftPercentPercent = 0m;
+        protected decimal StartLeftPercentPercent;
         private string _xxPath;
         private static StoredIoItem _xxstored; // we only want 1 stored globally
-        protected decimal _widthPercent = 1;
+        protected decimal WidthPercent;
         protected IoItem Selected;
         protected List<IoItem> DisplayItems = new List<IoItem>();
         protected int Offset;
@@ -36,8 +36,8 @@ namespace FileManagerCLI.FileManager
 
         protected FileManagerDisplay(decimal widthPercent, decimal startLeftPercent)
         {
-            _widthPercent = widthPercent;
-            _startLeftPercentPercent = startLeftPercent;
+            WidthPercent = widthPercent;
+            StartLeftPercentPercent = startLeftPercent;
             Path = Environment.CurrentDirectory;
         }
 
@@ -62,7 +62,7 @@ namespace FileManagerCLI.FileManager
         {
             Offset = offset;
             DisplayItems = items.ToList();
-            BuildDisplay(_widthPercent);
+            BuildDisplay(WidthPercent);
 
             Console.SetCursorPosition(_startLeft(), 0);
             Console.WriteLine(FitWidth(Path, false));
@@ -71,7 +71,7 @@ namespace FileManagerCLI.FileManager
 
         private void BuildDisplay(decimal widthPercent)
         {
-            this._widthPercent = widthPercent;
+            this.WidthPercent = widthPercent;
             WindowSize = new Size(
                 Math.Min((int) (Console.WindowWidth * widthPercent), Console.WindowWidth - _startLeft()),
                 Console.WindowHeight - HeightOffset);
@@ -102,7 +102,7 @@ namespace FileManagerCLI.FileManager
         protected void OutPutDisplay(string text, int y, bool selected)
         {
             if (WindowSize.Width !=
-                Math.Min((int) (Console.WindowWidth * _widthPercent), Console.WindowWidth - _startLeft()) ||
+                Math.Min((int) (Console.WindowWidth * WidthPercent), Console.WindowWidth - _startLeft()) ||
                 WindowSize.Height != Console.WindowHeight - HeightOffset)
             {
                 Display(DisplayItems, Offset);

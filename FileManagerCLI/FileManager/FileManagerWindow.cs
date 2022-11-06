@@ -16,8 +16,8 @@ namespace FileManagerCLI.FileManager
 
         public void UpdateDisplayDetails(decimal widthPercent, decimal startLeftPercent)
         {
-            _widthPercent = widthPercent;
-            _startLeftPercentPercent = startLeftPercent;
+            WidthPercent = widthPercent;
+            StartLeftPercentPercent = startLeftPercent;
             Redraw();
         }
 
