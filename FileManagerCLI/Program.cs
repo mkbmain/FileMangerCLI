@@ -108,7 +108,10 @@ namespace FileManagerCLI
                         selectedDisplay.ToggleHidden();
                         break;
                     case ConsoleKey.Q:
-                        IfMod(readKey.Modifiers, () => Process.GetCurrentProcess().Kill());
+                        if (IfMod(readKey.Modifiers))
+                        {
+                            return;
+                        }
                         break;
                     case ConsoleKey.M:
                         selectedDisplay.Move();
@@ -139,8 +142,7 @@ namespace FileManagerCLI
             invoke();
             return true;
         });
-
-        private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) =>
-            modifiers.HasFlag(Config.ModKey) ? invoke() : default;
+        private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) => IfMod(modifiers) ? invoke() : default;
+        private static bool IfMod(ConsoleModifiers modifiers) => modifiers.HasFlag(Config.ModKey);
     }
 }
