@@ -96,7 +96,15 @@ namespace FileManagerCLI
                         selectedDisplay.Select();
                         break;
                     case ConsoleKey.L:
-                        IfMod(readKey.Modifiers, () => selectedDisplay.EditLocation());
+                        IfMod(readKey.Modifiers, () =>
+                        {
+                            selectedDisplay.EditLocation();
+                            displays.Select(e =>
+                            {
+                                 e.Redraw();
+                                 return true;
+                            }).ToArray();
+                        });
                         break;
                     case ConsoleKey.H:
                         selectedDisplay.ToggleHidden();
