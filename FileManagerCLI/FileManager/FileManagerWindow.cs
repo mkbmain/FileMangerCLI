@@ -110,7 +110,7 @@ namespace FileManagerCLI.FileManager
         public void TopDirectory()
         {
             var back = DisplayItems.FirstOrDefault(w => w.IoType == IoItemType.Back);
-            if(back is null){return;}
+            if (back is null) return;
 
             Selected = back;
             Select();
