@@ -127,7 +127,7 @@ namespace FileManagerCLI.FileManager
 
         private string FitWidth(string format, bool keepStart) => FitWidth(format ?? "", keepStart, WindowSize.Width);
 
-        private string FitWidth(string format, bool keepStart, int width) => format.Length > width
+        protected string FitWidth(string format, bool keepStart, int width) => format.Length > width
             ? keepStart
                 ? format[..width]
                 : format.Substring(format.Length - width, width)
