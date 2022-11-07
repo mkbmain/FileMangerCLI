@@ -109,6 +109,7 @@ namespace FileManagerCLI
                     case ConsoleKey.Q:
                         if (IfMod(readKey.Modifiers))
                         {
+                            Console.Clear();
                             return;
                         }
                         break;
