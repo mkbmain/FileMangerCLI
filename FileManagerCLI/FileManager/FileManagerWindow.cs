@@ -218,26 +218,44 @@ namespace FileManagerCLI.FileManager
         }
 
         public void Redraw() => Display(DisplayItems, Offset);
-
-        public void MoveSelected(bool up)
+        
+        public void MoveSelected(MoveSelected selected)
         {
             var selectedIndex = DisplayItems.IndexOf(Selected);
+            bool up = selected is Enums.MoveSelected.Top or Enums.MoveSelected.OneUp or Enums.MoveSelected.TenUp;
+            
             if ((up && selectedIndex == 0) || (!up && selectedIndex == DisplayItems.Count - 1)) return;
 
-            var newSelectedIndex = selectedIndex + (up ? -1 : 1);
+            var indexModify = 0;
+            switch (selected)
+            {
+                case Enums.MoveSelected.OneUp:
+                    indexModify = -1;
+                    break;
+                case Enums.MoveSelected.OneDown:
+                    indexModify = 1;
+                    break;
+                case Enums.MoveSelected.TenUp:
+                    indexModify = selectedIndex < 10 ? -selectedIndex : -10;
+                    break;
+                case Enums.MoveSelected.TenDown:
+                    indexModify = DisplayItems.Count -1 - selectedIndex < 10 ? DisplayItems.Count -1- selectedIndex : 10;
+                    break;
+                case Enums.MoveSelected.Bottom:
+                    indexModify = DisplayItems.Count - selectedIndex - 1;
+                    break;
+                case Enums.MoveSelected.Top:
+                    indexModify = -selectedIndex;
+                    break;
+            }
+            
+            var newSelectedIndex = selectedIndex +indexModify;
             var previous = Selected;
             Selected = DisplayItems[newSelectedIndex];
 
-            if (newSelectedIndex > (Offset + WindowSize.Height - 1))
+            if (newSelectedIndex > Offset + WindowSize.Height - 1 || newSelectedIndex < Offset)
             {
-                Offset += 10;
-                Display(DisplayItems, Offset);
-                return;
-            }
-
-            if (newSelectedIndex < Offset)
-            {
-                Offset -= 10;
+                Offset = (newSelectedIndex/10) *10;
                 Display(DisplayItems, Offset);
                 return;
             }

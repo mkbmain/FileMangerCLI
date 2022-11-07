@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using FileManagerCLI.Enums;
 using FileManagerCLI.FileManager;
 using FileManagerCLI.Settings;
 
@@ -83,11 +84,28 @@ namespace FileManagerCLI
                         }
                     }
                         break;
+                    case ConsoleKey.PageUp:
+                        selectedDisplay.MoveSelected(MoveSelected.Top);
+                        break;
+                    case ConsoleKey.PageDown:
+                        selectedDisplay.MoveSelected(MoveSelected.Bottom);
+                        break;
                     case ConsoleKey.UpArrow:
-                        selectedDisplay.MoveSelected(true);
+                        if (IfMod(readKey.Modifiers))
+                        {
+                            selectedDisplay.MoveSelected(MoveSelected.TenUp);
+                            continue;
+                        }
+
+                        selectedDisplay.MoveSelected(MoveSelected.OneUp);
                         break;
                     case ConsoleKey.DownArrow:
-                        selectedDisplay.MoveSelected(false);
+                        if (IfMod(readKey.Modifiers))
+                        {
+                            selectedDisplay.MoveSelected(MoveSelected.TenDown);
+                            continue;
+                        }
+                        selectedDisplay.MoveSelected(MoveSelected.OneDown);
                         break;
                     case ConsoleKey.Enter:
                         selectedDisplay.Select();
@@ -96,11 +114,8 @@ namespace FileManagerCLI
                         IfMod(readKey.Modifiers, () =>
                         {
                             selectedDisplay.EditLocation();
-                            displays.Select(e =>
-                            {
-                                 e.Redraw();
-                                 return true;
-                            }).ToArray();
+                            foreach (var t in displays) t.Redraw();
+                            
                         });
                         break;
                     case ConsoleKey.H:
