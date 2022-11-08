@@ -15,6 +15,7 @@ namespace FileManagerCLI
         private const string ConfigFileName = "config.json";
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
+            Console.Clear();
             var total = fileManagerWindows.Count;
             var pos = 1m / total;
             for (int i = 0; i < fileManagerWindows.Count; i++)
@@ -54,35 +55,42 @@ namespace FileManagerCLI
                 switch (readKey.Key)
                 {
                     case ConsoleKey.LeftArrow:
-                    {
-                        var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
-                            ChangeDisplays(displays);
-                            return true;
-                        });
+                            var wasMod = IfMod(readKey.Modifiers, () =>
+                            {
+                                displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
+                                ChangeDisplays(displays);
+                                return true;
+                            });
 
-                        if (!wasMod && selectedDisplay != displays.First())
-                        {
-                            selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
+                            if (!wasMod && selectedDisplay != displays.First())
+                            {
+                                selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
+                            }
                         }
-                    }
                         break;
                     case ConsoleKey.RightArrow:
-                    {
-                        var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            displays.Add(new FileManagerWindow());
-                            ChangeDisplays(displays);
-                            selectedDisplay = displays.Last();
-                            return true;
-                        });
+                            var wasMod = IfMod(readKey.Modifiers, () =>
+                            {
+                                displays.Add(new FileManagerWindow());
+                                ChangeDisplays(displays);
+                                selectedDisplay = displays.Last();
+                                return true;
+                            });
 
-                        if (!wasMod && selectedDisplay != displays.Last())
-                        {
-                            selectedDisplay = displays[displays.IndexOf(selectedDisplay) + 1];
+                            if (!wasMod && selectedDisplay != displays.Last())
+                            {
+                                selectedDisplay = displays[displays.IndexOf(selectedDisplay) + 1];
+                            }
                         }
-                    }
+                        break;
+                    case ConsoleKey.K:
+                        if (displays.Count == 1) { continue; }
+                        var index = displays.IndexOf(selectedDisplay);
+                        displays = displays.Where(e => e != selectedDisplay).ToList();
+                        ChangeDisplays(displays);
+                        selectedDisplay = displays.Count -1 >= index ? displays[index] : displays.Last();
                         break;
                     case ConsoleKey.PageUp:
                         selectedDisplay.MoveSelected(MoveSelected.Top);
@@ -96,7 +104,6 @@ namespace FileManagerCLI
                             selectedDisplay.MoveSelected(MoveSelected.TenUp);
                             continue;
                         }
-
                         selectedDisplay.MoveSelected(MoveSelected.OneUp);
                         break;
                     case ConsoleKey.DownArrow:
@@ -115,7 +122,7 @@ namespace FileManagerCLI
                         {
                             selectedDisplay.EditLocation();
                             foreach (var t in displays) t.Redraw();
-                            
+
                         });
                         break;
                     case ConsoleKey.H:
@@ -141,15 +148,13 @@ namespace FileManagerCLI
                         IfMod(readKey.Modifiers, selectedDisplay.Delete);
                         break;
                     case ConsoleKey.S:
-                        if (!IfMod(readKey.Modifiers, () =>
-                            {
-                                selectedDisplay.ClearStore();
-                                return true;
-                            }))
+                        if (IfMod(readKey.Modifiers))
                         {
-                            selectedDisplay.Store();
+                            selectedDisplay.ClearStore();
+                            continue;
                         }
-
+                        selectedDisplay.Store();
+                        
                         break;
                 }
             }
