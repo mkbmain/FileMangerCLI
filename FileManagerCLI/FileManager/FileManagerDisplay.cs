@@ -12,7 +12,7 @@ namespace FileManagerCLI.FileManager
         protected bool ShowHidden = true;
         protected Size WindowSize;
         private const int HeightOffset = 3;
-
+        
         private int _startLeft() =>
             StartLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * StartLeftPercentPercent);
 
@@ -23,6 +23,7 @@ namespace FileManagerCLI.FileManager
         protected IoItem Selected;
         protected List<IoItem> DisplayItems = new List<IoItem>();
         protected int Offset;
+        public bool CalculateDirectorySize = false;
 
         protected StoredIoItem Stored
         {
@@ -52,7 +53,7 @@ namespace FileManagerCLI.FileManager
                     _xxPath += FileIoUtil.PathSeparator;
                 }
 
-                var items = FileIoUtil.GetDetailsForPath(Path).Where(e => ShowHidden || e.Hidden == false).ToList();
+                var items = FileIoUtil.GetDetailsForPath(Path, CalculateDirectorySize).Where(e => ShowHidden || e.Hidden == false).ToList();
                 Selected = items.First();
                 Display(items, 0);
             }

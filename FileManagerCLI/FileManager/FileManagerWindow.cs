@@ -166,7 +166,7 @@ namespace FileManagerCLI.FileManager
                             continue;
                         }
 
-                        var items = FileIoUtil.GetDetailsForPath(partialPath)
+                        var items = FileIoUtil.GetDetailsForPath(partialPath,false)
                             .Where(e => e.IoType == IoItemType.Directory).ToList();
                         if (!items.Any())
                         {

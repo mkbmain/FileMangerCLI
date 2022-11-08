@@ -11,10 +11,10 @@ namespace FileManagerCLI.Utils
     {
         public static readonly string PathSeparator = Path.Combine(" ", " ").Trim();
 
-        public static IEnumerable<IoItem> GetDetailsForPath(string path)
+        public static IEnumerable<IoItem> GetDetailsForPath(string path, bool getDirectorySize)
         {
-            var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)), IoItemType.Directory);
-            var files = ProjectToIoItem(Directory.GetFiles(path).Select(w => new FileInfo(w)), IoItemType.File);
+            var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)), getDirectorySize);
+            var files = ProjectToIoItem(Directory.GetFiles(path).Select(w => new FileInfo(w)));
             var part = folders.Concat(files);
 
             if (path.ToCharArray().Count(x => PathSeparator.First() == x) > 1)
@@ -63,9 +63,28 @@ namespace FileManagerCLI.Utils
             }
         }
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileSystemInfo> fileSystemInfos, IoItemType type) =>
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize) => ProjectToIoItem<DirectoryInfo>(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
+
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) => ProjectToIoItem<FileInfo>(items, IoItemType.File, info => info.Length);
+
+        private static long SizeOfDirectory(string path, bool getSizeOfDirectory)
+        {
+            if (!getSizeOfDirectory) return -1;
+            try
+            {
+                return Directory.GetFiles(path).Sum(e => e.Length) + Directory.GetDirectories(path).Sum(e=> SizeOfDirectory(e, true));
+            }
+            catch (Exception e)
+            {
+                return -1;
+            }
+
+        }
+
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem<T>(IEnumerable<T> fileSystemInfos, IoItemType type, Func<T, long> size) where T : FileSystemInfo =>
             fileSystemInfos.Select(w => new IoItem
             {
+                Size = size(w),
                 Name = w.Name,
                 IoType = type,
                 Hidden = w.Attributes.HasFlag(FileAttributes.Hidden)
