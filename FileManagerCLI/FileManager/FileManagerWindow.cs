@@ -218,12 +218,12 @@ namespace FileManagerCLI.FileManager
         }
 
         public void Redraw() => Display(DisplayItems, Offset);
-        
+
         public void MoveSelected(MoveSelected selected)
         {
             var selectedIndex = DisplayItems.IndexOf(Selected);
-            bool up = selected is Enums.MoveSelected.Top or Enums.MoveSelected.OneUp or Enums.MoveSelected.TenUp;
-            
+            bool up = selected == Enums.MoveSelected.Top || selected == Enums.MoveSelected.OneUp || selected == Enums.MoveSelected.TenUp;
+
             if ((up && selectedIndex == 0) || (!up && selectedIndex == DisplayItems.Count - 1)) return;
 
             var indexModify = 0;
@@ -239,7 +239,7 @@ namespace FileManagerCLI.FileManager
                     indexModify = selectedIndex < 10 ? -selectedIndex : -10;
                     break;
                 case Enums.MoveSelected.TenDown:
-                    indexModify = DisplayItems.Count -1 - selectedIndex < 10 ? DisplayItems.Count -1- selectedIndex : 10;
+                    indexModify = DisplayItems.Count - 1 - selectedIndex < 10 ? DisplayItems.Count - 1 - selectedIndex : 10;
                     break;
                 case Enums.MoveSelected.Bottom:
                     indexModify = DisplayItems.Count - selectedIndex - 1;
@@ -248,14 +248,14 @@ namespace FileManagerCLI.FileManager
                     indexModify = -selectedIndex;
                     break;
             }
-            
-            var newSelectedIndex = selectedIndex +indexModify;
+
+            var newSelectedIndex = selectedIndex + indexModify;
             var previous = Selected;
             Selected = DisplayItems[newSelectedIndex];
 
             if (newSelectedIndex > Offset + WindowSize.Height - 1 || newSelectedIndex < Offset)
             {
-                Offset = (newSelectedIndex/10) *10;
+                Offset = (newSelectedIndex / 10) * 10;
                 Display(DisplayItems, Offset);
                 return;
             }
