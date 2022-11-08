@@ -13,34 +13,19 @@ namespace FileManagerCLI.Utils
 
         public static IEnumerable<IoItem> GetDetailsForPath(string path)
         {
-            var folders = Directory.GetDirectories(path)
-                .Select(w => new DirectoryInfo(w))
-                .Select(w => new IoItem
-                {
-                    Name = w.Name,
-                    IoType = IoItemType.Directory,
-                    Hidden = w.Attributes.HasFlag(FileAttributes.Hidden)
-                })
-                .OrderBy(w => w.Name);
-
-            var files = Directory.GetFiles(path).Select(w => new FileInfo(w)).Select(w => new IoItem
-            {
-                IoType = IoItemType.File,
-                Hidden = w.Attributes.HasFlag(FileAttributes.Hidden),
-                Name = w.Name
-            }).OrderBy(w => w.Name);
-
+            var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)), IoItemType.Directory);
+            var files = ProjectToIoItem(Directory.GetFiles(path).Select(w => new FileInfo(w)), IoItemType.File);
             var part = folders.Concat(files);
 
             if (path.ToCharArray().Count(x => PathSeparator.First() == x) > 1)
             {
-                return new[] {new IoItem {Hidden = false, IoType = IoItemType.Back, Name = ".."}}.Concat(part);
+                return new[] { new IoItem { Hidden = false, IoType = IoItemType.Back, Name = ".." } }.Concat(part);
             }
 
             return part;
         }
 
-        private static readonly string[] Suffix = {"", "K", "M", "G", "T", "P", "E"}; //Longs run out around EB
+        private static readonly string[] Suffix = { "", "K", "M", "G", "T", "P", "E" }; //Longs run out around EB
 
         public static string BytesToString(long byteCount)
         {
@@ -77,5 +62,13 @@ namespace FileManagerCLI.Utils
                 DirectoryCopy(directoryInfo.FullName, tempPath);
             }
         }
+
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileSystemInfo> fileSystemInfos, IoItemType type) =>
+            fileSystemInfos.Select(w => new IoItem
+            {
+                Name = w.Name,
+                IoType = type,
+                Hidden = w.Attributes.HasFlag(FileAttributes.Hidden)
+            }).OrderBy(w => w.Name);
     }
 }
