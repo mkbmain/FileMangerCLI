@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using FileManagerCLI.Data;
 using FileManagerCLI.Enums;
 using FileManagerCLI.FileManager;
@@ -12,11 +13,9 @@ namespace FileManagerCLI
 {
     class Program
     {
-        public static Config Config = new Config();
         private const string ConfigFileName = "config.json";
-
+        public static Config Config = new Config();
         private static List<LogEvent> LogEvents = new List<LogEvent>();
-
 
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
@@ -183,13 +182,9 @@ namespace FileManagerCLI
             LogEvents.Add(logEvent);
 
             if (string.IsNullOrWhiteSpace(Config.LogFile)) return;
-            if (!File.Exists(Config.LogFile))
-            {
-                File.Create(Config.LogFile);
-            }
-
-            using var sw = new StreamWriter(Config.LogFile, true);
-            sw.WriteLine($"{DateTime.Now:g} - {logEvent.Log} -- {logEvent.LogType} {logEvent.Exception?.Message ?? ""}");
+            using var sw = new StreamWriter(File.Open(Config.LogFile, FileMode.Append), Encoding.Default);
+            sw.WriteLine(
+                $"{DateTime.Now:g} - {logEvent.Log} -- {logEvent.LogType} {logEvent.Exception?.Message ?? ""}");
         }
 
         private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
