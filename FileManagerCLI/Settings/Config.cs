@@ -5,6 +5,7 @@ namespace FileManagerCLI.Settings
 {
     public class Config
     {
+        public bool ShowHiddenByDefault { get; set; }
         public string LogFile { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]

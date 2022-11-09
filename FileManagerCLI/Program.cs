@@ -43,7 +43,7 @@ namespace FileManagerCLI
             FileManagerDisplay.LogEvent += FileManagerWindowOnLogEvent;
             var displays = new List<FileManagerWindow>();
             var size = new Size(Console.WindowWidth, Console.WindowHeight);
-            displays.Add(new FileManagerWindow());
+            displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
             var selectedDisplay = displays.First();
             while (true)
             {
@@ -79,7 +79,7 @@ namespace FileManagerCLI
                     {
                         var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            displays.Add(new FileManagerWindow());
+                            displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
                             ChangeDisplays(displays);
                             selectedDisplay = displays.Last();
                             return true;

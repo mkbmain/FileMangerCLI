@@ -40,8 +40,9 @@ namespace FileManagerCLI.FileManager
             }
         }
 
-        protected FileManagerDisplay(decimal widthPercent, decimal startLeftPercent)
+        protected FileManagerDisplay(bool showHidden,decimal widthPercent, decimal startLeftPercent)
         {
+            ShowHidden = showHidden;
             WidthPercent = widthPercent;
             StartLeftPercentPercent = startLeftPercent;
             Path = Environment.CurrentDirectory;
