@@ -3,9 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace FileManagerCLI.Settings
 {
-
     public class Config
     {
+        public string LogFile { get; set; }
+
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConsoleColor BackgroundColor { get; set; } = ConsoleColor.White;
 
@@ -14,5 +15,8 @@ namespace FileManagerCLI.Settings
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConsoleModifiers ModKey { get; set; } = ConsoleModifiers.Control;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public ConsoleColor ErrorLogColor { get; set; } = ConsoleColor.Red;
     }
 }

@@ -27,19 +27,22 @@ namespace FileManagerCLI.FileManager
 
             var newPath = System.IO.Path.Combine(Path, Stored.Name);
             if (newPath == Stored.FullPath) return false;
-
+            var copied = false;
             switch (Stored.IoType)
             {
                 case IoItemType.File:
-                    File.Copy(Stored.FullPath, newPath, true);
+                    copied = RunWithErrorHandle(() => File.Copy(Stored.FullPath, newPath, true),
+                        $"Failed to Copy {Stored.FullPath}");
                     break;
                 case IoItemType.Directory:
-                    FileIoUtil.DirectoryCopy(Stored.FullPath, newPath);
+                    copied = RunWithErrorHandle(() => FileIoUtil.DirectoryCopy(Stored.FullPath, newPath),
+                        $"Failed to Copy directory {Stored.FullPath}");
                     break;
                 default:
                     return false;
             }
 
+            if (!copied) return false;
             Path = Path;
             return true;
         }
@@ -81,18 +84,22 @@ namespace FileManagerCLI.FileManager
         public void Delete()
         {
             var path = System.IO.Path.Combine(Path, Selected.Name);
+            var deleted = false;
             switch (Selected.IoType)
             {
                 case IoItemType.File:
-                    File.Delete(path);
+                    deleted = RunWithErrorHandle(() => File.Delete(path), $"Failed to delete file {path}");
                     break;
                 case IoItemType.Directory:
-                    Directory.Delete(path, true);
+                    deleted = RunWithErrorHandle(() => Directory.Delete(path, true),
+                        $"Failed to delete directory {path}");
                     break;
                 default:
                     return;
             }
 
+            if (!deleted) return;
+            
             if (Stored?.FullPath == path)
             {
                 Stored = null;
@@ -155,7 +162,7 @@ namespace FileManagerCLI.FileManager
                             Console.CursorVisible = false;
                             return;
                         }
-
+                        WriteLog(this,$"Can not find directory{path}" ,LogType.Info);
                         break;
                     case ConsoleKey.Tab:
                         var partialPathParts = path.Split(FileIoUtil.PathSeparator);
@@ -166,7 +173,7 @@ namespace FileManagerCLI.FileManager
                             continue;
                         }
 
-                        var items = FileIoUtil.GetDetailsForPath(partialPath,false)
+                        var items = FileIoUtil.GetDetailsForPath(partialPath, false)
                             .Where(e => e.IoType == IoItemType.Directory).ToList();
                         if (!items.Any())
                         {
@@ -222,7 +229,8 @@ namespace FileManagerCLI.FileManager
         public void MoveSelected(MoveSelected selected)
         {
             var selectedIndex = DisplayItems.IndexOf(Selected);
-            bool up = selected == Enums.MoveSelected.Top || selected == Enums.MoveSelected.OneUp || selected == Enums.MoveSelected.TenUp;
+            bool up = selected == Enums.MoveSelected.Top || selected == Enums.MoveSelected.OneUp ||
+                      selected == Enums.MoveSelected.TenUp;
 
             if ((up && selectedIndex == 0) || (!up && selectedIndex == DisplayItems.Count - 1)) return;
 
@@ -239,7 +247,9 @@ namespace FileManagerCLI.FileManager
                     indexModify = selectedIndex < 10 ? -selectedIndex : -10;
                     break;
                 case Enums.MoveSelected.TenDown:
-                    indexModify = DisplayItems.Count - 1 - selectedIndex < 10 ? DisplayItems.Count - 1 - selectedIndex : 10;
+                    indexModify = DisplayItems.Count - 1 - selectedIndex < 10
+                        ? DisplayItems.Count - 1 - selectedIndex
+                        : 10;
                     break;
                 case Enums.MoveSelected.Bottom:
                     indexModify = DisplayItems.Count - selectedIndex - 1;

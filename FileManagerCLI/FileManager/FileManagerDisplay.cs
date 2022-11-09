@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using FileManagerCLI.Data;
+using FileManagerCLI.Enums;
 using FileManagerCLI.Utils;
 
 namespace FileManagerCLI.FileManager
@@ -12,7 +13,11 @@ namespace FileManagerCLI.FileManager
         protected bool ShowHidden = true;
         protected Size WindowSize;
         private const int HeightOffset = 3;
-        
+
+        public delegate void LogEventHandler(object sender, LogEvent logEvent);
+
+        public static event LogEventHandler LogEvent = null;
+
         private int _startLeft() =>
             StartLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * StartLeftPercentPercent);
 
@@ -53,7 +58,8 @@ namespace FileManagerCLI.FileManager
                     _xxPath += FileIoUtil.PathSeparator;
                 }
 
-                var items = FileIoUtil.GetDetailsForPath(Path, CalculateDirectorySize).Where(e => ShowHidden || e.Hidden == false).ToList();
+                var items = FileIoUtil.GetDetailsForPath(Path, CalculateDirectorySize)
+                    .Where(e => ShowHidden || e.Hidden == false).ToList();
                 Selected = items.First();
                 Display(items, 0);
             }
@@ -87,16 +93,40 @@ namespace FileManagerCLI.FileManager
                 OutPutDisplay(" ", i, false);
             }
 
-            WriteMenu();
+            FirstLogLineSetup();
         }
 
-        private void WriteMenu()
+        protected bool RunWithErrorHandle(Action action, string failure)
         {
-            var storedDetails = Stored is null ? "" : " | Copy:C | Move:M | Clear:Mod+S";
+            try
+            {
+                action();
+                return true;
+            }
+            catch (Exception e)
+            {
+                WriteLog(this, failure, LogType.Error, e);
+            }
+            return false;
+        }
+
+        private static bool FirstBuild = true;
+
+        private void FirstLogLineSetup()
+        {
+            if (!FirstBuild) return;
+            WriteLog(this, "", LogType.Draw);
+            FirstBuild = false;
+        }
+
+        public static void WriteLog(object caller, string comment, LogType type, Exception exception = null)
+        {
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
-            Console.Write(FitWidth(
-                $"Mod = {Program.Config.ModKey.ToString()} | Exit:Mod+Q | Dir:Mod+L | AddWindow:Mod+ → | RemoveWindows: mod + ←  | UpDir:B | Move To Window:← →  | Delete:Mod+D | Hidden:H | Store:S{storedDetails}"
-                    .PadRight(WindowSize.Width, ' '), true, Console.WindowWidth));
+            Console.BackgroundColor =  Program.Config.BackgroundColor;
+            Console.ForegroundColor = type == LogType.Error ? Program.Config.ErrorLogColor : Program.Config.ForegroundColor;
+            Console.Write(FitWidth(comment, true, Console.WindowWidth));
+            if(type ==LogType.Draw) return;
+            LogEvent?.Invoke(caller, new LogEvent {Log = comment, LogType = type, Exception = exception});
         }
 
 
@@ -122,13 +152,12 @@ namespace FileManagerCLI.FileManager
             Console.ForegroundColor = Program.Config.ForegroundColor;
             Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
             Console.Write(FitWidth(Stored?.FullPath ?? "", false, Console.WindowWidth));
-            WriteMenu();
         }
 
 
         private string FitWidth(string format, bool keepStart) => FitWidth(format ?? "", keepStart, WindowSize.Width);
 
-        protected string FitWidth(string format, bool keepStart, int width) => format.Length > width
+        protected static string FitWidth(string format, bool keepStart, int width) => format.Length > width
             ? keepStart
                 ? format[..width]
                 : format.Substring(format.Length - width, width)
