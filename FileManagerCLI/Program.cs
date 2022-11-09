@@ -189,7 +189,7 @@ namespace FileManagerCLI
             }
 
             using var sw = new StreamWriter(Config.LogFile, true);
-            sw.Write($"{DateTime.Now:g} - {logEvent.Log} -- {logEvent.LogType} {logEvent.Exception?.Message ?? ""}");
+            sw.WriteLine($"{DateTime.Now:g} - {logEvent.Log} -- {logEvent.LogType} {logEvent.Exception?.Message ?? ""}");
         }
 
         private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
