@@ -40,7 +40,9 @@ namespace FileManagerCLI
             }
 
             FileManagerDisplay.LogEvent += FileManagerWindowOnLogEvent;
+
             var displays = new List<FileManagerWindow>();
+
             var size = new Size(Console.WindowWidth, Console.WindowHeight);
             displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
             var selectedDisplay = displays.First();
@@ -108,22 +110,10 @@ namespace FileManagerCLI
                         selectedDisplay.MoveSelected(MoveSelected.Bottom);
                         break;
                     case ConsoleKey.UpArrow:
-                        if (IfMod(readKey.Modifiers))
-                        {
-                            selectedDisplay.MoveSelected(MoveSelected.TenUp);
-                            continue;
-                        }
-
-                        selectedDisplay.MoveSelected(MoveSelected.OneUp);
+                        selectedDisplay.MoveSelected(IfMod(readKey.Modifiers) ? MoveSelected.TenUp : MoveSelected.OneUp);
                         break;
                     case ConsoleKey.DownArrow:
-                        if (IfMod(readKey.Modifiers))
-                        {
-                            selectedDisplay.MoveSelected(MoveSelected.TenDown);
-                            continue;
-                        }
-
-                        selectedDisplay.MoveSelected(MoveSelected.OneDown);
+                        selectedDisplay.MoveSelected(IfMod(readKey.Modifiers) ? MoveSelected.TenDown : MoveSelected.OneDown);
                         break;
                     case ConsoleKey.Enter:
                         selectedDisplay.Select();
