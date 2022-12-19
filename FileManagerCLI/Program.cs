@@ -14,6 +14,28 @@ namespace FileManagerCLI
     class Program
     {
         private const string ConfigFileName = "config.json";
+
+        private const string KeyBindings = @"Simple key bindings
+
+left/right = move between tabs
+up/down = move up and down in a tab (use mod key to jump 10 at a time)
+
+
+(mod) + left/right = will create new tabs or collapse all tabs to right
+pageup/pagedown = go to top of current tab or bottom
+Enter = select
+
+B = Top directory
+K = will kill current tab
+H = show hidden files on tab
+(mod) + q = exit
+
+(mod) + d Deletes current selected file /folder
+
+S = stores current selected item in buffer
+(mod) + s = clears buffer
+C = Copy (Copy the current item in buffer here)
+M = move (Moves the current item in buffer here)";
         public static Config Config = new Config();
         private static List<LogEvent> LogEvents = new List<LogEvent>();
 
@@ -38,6 +60,9 @@ namespace FileManagerCLI
                 var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
                 Config = config;
             }
+            
+            Console.WriteLine(KeyBindings.Replace("(mod)", Config.ModKey.ToString()));
+            Console.ReadLine();
 
             FileManagerDisplay.LogEvent += FileManagerWindowOnLogEvent;
 
