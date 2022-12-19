@@ -111,13 +111,13 @@ namespace FileManagerCLI.FileManager
             return false;
         }
 
-        private static bool FirstBuild = true;
+        private static bool _firstBuild = true;
 
         private void FirstLogLineSetup()
         {
-            if (!FirstBuild) return;
+            if (!_firstBuild) return;
             WriteLog(this, "", LogType.Draw);
-            FirstBuild = false;
+            _firstBuild = false;
         }
 
         protected static void WriteLog(object caller, string comment, LogType type, Exception exception = null)
