@@ -120,7 +120,7 @@ namespace FileManagerCLI.FileManager
             FirstBuild = false;
         }
 
-        public static void WriteLog(object caller, string comment, LogType type, Exception exception = null)
+        protected static void WriteLog(object caller, string comment, LogType type, Exception exception = null)
         {
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.BackgroundColor =  Program.Config.BackgroundColor;
