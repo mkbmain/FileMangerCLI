@@ -1,4 +1,3 @@
-using System.IO;
 using FileManagerCLI.Enums;
 using FileManagerCLI.Utils;
 
