@@ -29,7 +29,7 @@ namespace FileManagerCLI.FileManager
 
             var newPath = System.IO.Path.Combine(Path, Stored.Name);
             if (newPath == Stored.FullPath) return false;
-            var copied = false;
+            bool copied;
             switch (Stored.IoType)
             {
                 case IoItemType.File:
@@ -86,7 +86,7 @@ namespace FileManagerCLI.FileManager
         public void Delete()
         {
             var path = System.IO.Path.Combine(Path, Selected.Name);
-            var deleted = false;
+            bool deleted;
             switch (Selected.IoType)
             {
                 case IoItemType.File:

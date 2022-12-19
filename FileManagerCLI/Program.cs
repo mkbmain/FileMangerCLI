@@ -37,7 +37,7 @@ S = stores current selected item in buffer
 C = Copy (Copy the current item in buffer here)
 M = move (Moves the current item in buffer here)";
         public static Config Config = new Config();
-        private static List<LogEvent> LogEvents = new List<LogEvent>();
+        private static List<LogEvent> _logEvents = new List<LogEvent>();
 
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
@@ -189,12 +189,12 @@ M = move (Moves the current item in buffer here)";
 
         private static void FileManagerWindowOnLogEvent(object sender, LogEvent logEvent)
         {
-            if (LogEvents.Count > 100)
+            if (_logEvents.Count > 100)
             {
-                LogEvents = LogEvents.Skip(1).ToList();
+                _logEvents = _logEvents.Skip(1).ToList();
             }
 
-            LogEvents.Add(logEvent);
+            _logEvents.Add(logEvent);
 
             if (string.IsNullOrWhiteSpace(Config.LogFile)) return;
             using var sw = new StreamWriter(File.Open(Config.LogFile, FileMode.Append), Encoding.Default);

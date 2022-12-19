@@ -63,9 +63,9 @@ namespace FileManagerCLI.Utils
             }
         }
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize) => ProjectToIoItem<DirectoryInfo>(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize) => ProjectToIoItem(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) => ProjectToIoItem<FileInfo>(items, IoItemType.File, info => info.Length);
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) => ProjectToIoItem(items, IoItemType.File, info => info.Length);
 
         private static long SizeOfDirectory(string path, bool getSizeOfDirectory)
         {
@@ -74,7 +74,7 @@ namespace FileManagerCLI.Utils
             {
                 return Directory.GetFiles(path).Sum(e => e.Length) + Directory.GetDirectories(path).Sum(e=> SizeOfDirectory(e, true));
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return -1;
             }

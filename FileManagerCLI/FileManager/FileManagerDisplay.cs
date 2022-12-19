@@ -10,13 +10,13 @@ namespace FileManagerCLI.FileManager
 {
     public abstract class FileManagerDisplay
     {
-        protected bool ShowHidden = true;
+        protected bool ShowHidden;
         protected Size WindowSize;
         private const int HeightOffset = 3;
 
         public delegate void LogEventHandler(object sender, LogEvent logEvent);
 
-        public static event LogEventHandler LogEvent = null;
+        public static event LogEventHandler LogEvent;
 
         private int _startLeft() =>
             StartLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * StartLeftPercentPercent);
