@@ -1,1 +1,7 @@
-{"BackgroundColor":"White","ForegroundColor":"Black"}
+{
+  "BackgroundColor":"White",
+  "ForegroundColor":"Black",
+  "ErrorLogColor":"Red",
+  "LogFile": "app.log",
+  "ShowHiddenByDefault": false
+}

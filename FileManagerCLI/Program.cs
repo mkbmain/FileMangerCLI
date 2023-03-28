@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
+using FileManagerCLI.Data;
 using FileManagerCLI.Enums;
 using FileManagerCLI.FileManager;
 using FileManagerCLI.Settings;
@@ -11,8 +13,32 @@ namespace FileManagerCLI
 {
     class Program
     {
-        public static Config Config = new Config();
         private const string ConfigFileName = "config.json";
+
+        private const string KeyBindings = @"Simple key bindings
+
+left/right = move between tabs
+up/down = move up and down in a tab (use mod key to jump 10 at a time)
+
+
+(mod) + left/right = will create new tabs or collapse all tabs to right
+pageup/pagedown = go to top of current tab or bottom
+Enter = select
+
+B = Top directory
+K = will kill current tab
+H = show hidden files on tab
+(mod) + q = exit
+
+(mod) + d Deletes current selected file /folder
+
+S = stores current selected item in buffer
+(mod) + s = clears buffer
+C = Copy (Copy the current item in buffer here)
+M = move (Moves the current item in buffer here)";
+        public static Config Config = new Config();
+        private static List<LogEvent> _logEvents = new List<LogEvent>();
+
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
             Console.Clear();
@@ -34,10 +60,16 @@ namespace FileManagerCLI
                 var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
                 Config = config;
             }
+            
+            Console.WriteLine(KeyBindings.Replace("(mod)", Config.ModKey.ToString()));
+            Console.ReadLine();
+
+            FileManagerDisplay.LogEvent += FileManagerWindowOnLogEvent;
 
             var displays = new List<FileManagerWindow>();
+
             var size = new Size(Console.WindowWidth, Console.WindowHeight);
-            displays.Add(new FileManagerWindow());
+            displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
             var selectedDisplay = displays.First();
             while (true)
             {
@@ -55,42 +87,46 @@ namespace FileManagerCLI
                 switch (readKey.Key)
                 {
                     case ConsoleKey.LeftArrow:
+                    {
+                        var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            var wasMod = IfMod(readKey.Modifiers, () =>
-                            {
-                                displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
-                                ChangeDisplays(displays);
-                                return true;
-                            });
+                            displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
+                            ChangeDisplays(displays);
+                            return true;
+                        });
 
-                            if (!wasMod && selectedDisplay != displays.First())
-                            {
-                                selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
-                            }
+                        if (!wasMod && selectedDisplay != displays.First())
+                        {
+                            selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
                         }
+                    }
                         break;
                     case ConsoleKey.RightArrow:
+                    {
+                        var wasMod = IfMod(readKey.Modifiers, () =>
                         {
-                            var wasMod = IfMod(readKey.Modifiers, () =>
-                            {
-                                displays.Add(new FileManagerWindow());
-                                ChangeDisplays(displays);
-                                selectedDisplay = displays.Last();
-                                return true;
-                            });
+                            displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
+                            ChangeDisplays(displays);
+                            selectedDisplay = displays.Last();
+                            return true;
+                        });
 
-                            if (!wasMod && selectedDisplay != displays.Last())
-                            {
-                                selectedDisplay = displays[displays.IndexOf(selectedDisplay) + 1];
-                            }
+                        if (!wasMod && selectedDisplay != displays.Last())
+                        {
+                            selectedDisplay = displays[displays.IndexOf(selectedDisplay) + 1];
                         }
+                    }
                         break;
                     case ConsoleKey.K:
-                        if (displays.Count == 1) { continue; }
+                        if (displays.Count == 1)
+                        {
+                            continue;
+                        }
+
                         var index = displays.IndexOf(selectedDisplay);
                         displays = displays.Where(e => e != selectedDisplay).ToList();
                         ChangeDisplays(displays);
-                        selectedDisplay = displays.Count -1 >= index ? displays[index] : displays.Last();
+                        selectedDisplay = displays.Count - 1 >= index ? displays[index] : displays.Last();
                         break;
                     case ConsoleKey.PageUp:
                         selectedDisplay.MoveSelected(MoveSelected.Top);
@@ -99,20 +135,10 @@ namespace FileManagerCLI
                         selectedDisplay.MoveSelected(MoveSelected.Bottom);
                         break;
                     case ConsoleKey.UpArrow:
-                        if (IfMod(readKey.Modifiers))
-                        {
-                            selectedDisplay.MoveSelected(MoveSelected.TenUp);
-                            continue;
-                        }
-                        selectedDisplay.MoveSelected(MoveSelected.OneUp);
+                        selectedDisplay.MoveSelected(IfMod(readKey.Modifiers) ? MoveSelected.TenUp : MoveSelected.OneUp);
                         break;
                     case ConsoleKey.DownArrow:
-                        if (IfMod(readKey.Modifiers))
-                        {
-                            selectedDisplay.MoveSelected(MoveSelected.TenDown);
-                            continue;
-                        }
-                        selectedDisplay.MoveSelected(MoveSelected.OneDown);
+                        selectedDisplay.MoveSelected(IfMod(readKey.Modifiers) ? MoveSelected.TenDown : MoveSelected.OneDown);
                         break;
                     case ConsoleKey.Enter:
                         selectedDisplay.Select();
@@ -122,7 +148,6 @@ namespace FileManagerCLI
                         {
                             selectedDisplay.EditLocation();
                             foreach (var t in displays) t.Redraw();
-
                         });
                         break;
                     case ConsoleKey.H:
@@ -134,6 +159,7 @@ namespace FileManagerCLI
                             Console.Clear();
                             return;
                         }
+
                         break;
                     case ConsoleKey.M:
                         selectedDisplay.Move();
@@ -153,11 +179,27 @@ namespace FileManagerCLI
                             selectedDisplay.ClearStore();
                             continue;
                         }
+
                         selectedDisplay.Store();
-                        
+
                         break;
                 }
             }
+        }
+
+        private static void FileManagerWindowOnLogEvent(object sender, LogEvent logEvent)
+        {
+            if (_logEvents.Count > 100)
+            {
+                _logEvents = _logEvents.Skip(1).ToList();
+            }
+
+            _logEvents.Add(logEvent);
+
+            if (string.IsNullOrWhiteSpace(Config.LogFile)) return;
+            using var sw = new StreamWriter(File.Open(Config.LogFile, FileMode.Append), Encoding.Default);
+            sw.WriteLine(
+                $"{DateTime.Now:g} - {logEvent.Log} -- {logEvent.LogType} {logEvent.Exception?.Message ?? ""}");
         }
 
         private static void IfMod(ConsoleModifiers modifier, Action invoke) => IfMod(modifier, () =>
@@ -165,6 +207,7 @@ namespace FileManagerCLI
             invoke();
             return true;
         });
+
         private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) => IfMod(modifiers) ? invoke() : default;
         private static bool IfMod(ConsoleModifiers modifiers) => modifiers.HasFlag(Config.ModKey);
     }
