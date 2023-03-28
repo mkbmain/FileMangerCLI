@@ -68,26 +68,18 @@ namespace FileManagerCLI.FileManager
         public void Move()
         {
             if (!Copy()) return;
-            switch (Stored.IoType)
-            {
-                case IoItemType.File:
-                    File.Delete(Stored.FullPath);
-                    break;
-                case IoItemType.Directory:
-                    Directory.Delete(Stored.FullPath);
-                    break;
-                default:
-                    return;
-            }
-
-            Stored = null;
+            Delete(Stored.FullPath, Stored.IoType);
         }
 
         public void Delete()
         {
-            var path = System.IO.Path.Combine(Path, Selected.Name);
+            Delete(System.IO.Path.Combine(Path, Selected.Name), Selected.IoType);
+        }
+
+        public void Delete(string path, IoItemType type)
+        {
             bool deleted;
-            switch (Selected.IoType)
+            switch (type)
             {
                 case IoItemType.File:
                     deleted = RunWithErrorHandle(() => File.Delete(path), $"Failed to delete file {path}");
