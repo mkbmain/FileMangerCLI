@@ -1,5 +1,5 @@
 # FileMan
- 
+
 ### Config
 to change basic usage of the app 
 ```json
