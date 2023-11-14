@@ -16,17 +16,15 @@ namespace FileManagerCLI
         private const string ConfigFileName = "config.json";
 
         private const string KeyBindings = @"Simple key bindings
-
 left/right = move between tabs
-up/down = move up and down in a tab (use mod key to jump 10 at a time)
-
-
 (mod) + left/right = will create new tabs or collapse all tabs to right
+K = will kill current tab
+
+up/down = move up and down in a tab (use mod key to jump 10 at a time)
 pageup/pagedown = go to top of current tab or bottom
 Enter = select
 
 B = Top directory
-K = will kill current tab
 H = show hidden files on tab
 (mod) + q = exit
 
