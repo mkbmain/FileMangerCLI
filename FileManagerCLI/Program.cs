@@ -187,7 +187,6 @@ namespace FileManagerCLI
         private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) => IfMod(modifiers) ? invoke() : default;
         private static bool IfMod(ConsoleModifiers modifiers) => modifiers.HasFlag(Config.ModKey);
 
-
         private const string ConfigFileName = "config.json";
 
         private const string KeyBindings = @"Simple key bindings
