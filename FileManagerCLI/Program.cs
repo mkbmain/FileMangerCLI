@@ -13,29 +13,8 @@ namespace FileManagerCLI
 {
     class Program
     {
-        private const string ConfigFileName = "config.json";
-
-        private const string KeyBindings = @"Simple key bindings
-left/right = move between tabs
-(mod) + left/right = will create new tabs or collapse all tabs to right
-K = will kill current tab
-
-up/down = move up and down in a tab (use mod key to jump 10 at a time)
-pageup/pagedown = go to top of current tab or bottom
-Enter = select
-
-B = Top directory
-H = show hidden files on tab
-(mod) + q = exit
-
-(mod) + d Deletes current selected file /folder
-
-S = stores current selected item in buffer
-(mod) + s = clears buffer
-C = Copy (Copy the current item in buffer here)
-M = move (Moves the current item in buffer here)";
-        public static Config Config = new Config();
-        private static List<LogEvent> _logEvents = new List<LogEvent>();
+        public static Config Config = new();
+        private static List<LogEvent> _logEvents = new();
 
         private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
         {
@@ -58,7 +37,7 @@ M = move (Moves the current item in buffer here)";
                 var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
                 Config = config;
             }
-            
+
             Console.WriteLine(KeyBindings.Replace("(mod)", Config.ModKey.ToString()));
             Console.ReadLine();
 
@@ -79,8 +58,7 @@ M = move (Moves the current item in buffer here)";
                         item.Redraw();
                     }
                 }
-
-
+                
                 var readKey = Console.ReadKey(true);
                 switch (readKey.Key)
                 {
@@ -208,5 +186,28 @@ M = move (Moves the current item in buffer here)";
 
         private static T IfMod<T>(ConsoleModifiers modifiers, Func<T> invoke) => IfMod(modifiers) ? invoke() : default;
         private static bool IfMod(ConsoleModifiers modifiers) => modifiers.HasFlag(Config.ModKey);
+
+
+        private const string ConfigFileName = "config.json";
+
+        private const string KeyBindings = @"Simple key bindings
+left/right = move between tabs
+(mod) + left/right = will create new tabs or collapse all tabs to right
+K = will kill current tab
+
+up/down = move up and down in a tab (use mod key to jump 10 at a time)
+pageup/pagedown = go to top of current tab or bottom
+Enter = select
+
+B = Top directory
+H = show hidden files on tab
+(mod) + q = exit
+
+(mod) + d Deletes current selected file /folder
+
+S = stores current selected item in buffer
+(mod) + s = clears buffer
+C = Copy (Copy the current item in buffer here)
+M = move (Moves the current item in buffer here)";
     }
 }
