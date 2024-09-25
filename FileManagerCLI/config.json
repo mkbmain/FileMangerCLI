@@ -3,5 +3,6 @@
   "ForegroundColor":"Black",
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
-  "ShowHiddenByDefault": false
+  "ShowHiddenByDefault": false,
+  "DisplayIcons" : false
 }

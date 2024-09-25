@@ -19,5 +19,7 @@ namespace FileManagerCLI.Settings
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConsoleColor ErrorLogColor { get; set; } = ConsoleColor.Red;
+        
+        public bool DisplayIcons { get; set; }
     }
 }
