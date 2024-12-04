@@ -8,7 +8,10 @@ to change basic usage of the app
   "ForegroundColor":"Black",
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
-  "ShowHiddenByDefault": false
+  "ShowHiddenByDefault": false,
+  "DisplayFolderIcons" : true,
+  "DisplayFileIcons" : true,
+  "DisplayItemSize" : false
 }
 ```
 Also allows a mod key to be set using [Enum From System](https://learn.microsoft.com/en-us/dotnet/api/system.consolemodifiers) but this is not officially supported by default mod key will be CTRL
