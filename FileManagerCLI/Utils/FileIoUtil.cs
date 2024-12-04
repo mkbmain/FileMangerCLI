@@ -13,7 +13,8 @@ namespace FileManagerCLI.Utils
 
         public static IEnumerable<IoItem> GetDetailsForPath(string path, bool getDirectorySize)
         {
-            var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)), getDirectorySize);
+            var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)),
+                getDirectorySize);
             var files = ProjectToIoItem(Directory.GetFiles(path).Select(w => new FileInfo(w)));
             var part = folders.Concat(files);
 
@@ -63,25 +64,28 @@ namespace FileManagerCLI.Utils
             }
         }
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize) => ProjectToIoItem(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize)
+            => ProjectToIoItem(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) => ProjectToIoItem(items, IoItemType.File, info => info.Length);
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) =>
+            ProjectToIoItem(items, IoItemType.File, info => info.Length);
 
         private static long SizeOfDirectory(string path, bool getSizeOfDirectory)
         {
             if (!getSizeOfDirectory) return -1;
             try
             {
-                return Directory.GetFiles(path).Sum(e => e.Length) + Directory.GetDirectories(path).Sum(e=> SizeOfDirectory(e, true));
+                return Directory.GetFiles(path).Sum(e => new FileInfo(e).Length) +
+                       Directory.GetDirectories(path).Sum(e => SizeOfDirectory(e, true));
             }
             catch (Exception)
             {
                 return -1;
             }
-
         }
 
-        private static IOrderedEnumerable<IoItem> ProjectToIoItem<T>(IEnumerable<T> fileSystemInfos, IoItemType type, Func<T, long> size) where T : FileSystemInfo =>
+        private static IOrderedEnumerable<IoItem> ProjectToIoItem<T>(IEnumerable<T> fileSystemInfos, IoItemType type,
+            Func<T, long> size) where T : FileSystemInfo =>
             fileSystemInfos.Select(w => new IoItem
             {
                 Size = size(w),

@@ -4,5 +4,7 @@
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
   "ShowHiddenByDefault": false,
-  "DisplayIcons" : false
+  "DisplayFolderIcons" : true,
+  "DisplayFileIcons" : true,
+  "DisplayItemSize" : false
 }

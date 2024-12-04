@@ -222,6 +222,8 @@ namespace FileManagerCLI.FileManager
             }
         }
 
+        public void Reload()=> Path = Path;
+        
         public void Redraw() => Display(DisplayItems, Offset);
 
         public void MoveSelected(MoveSelected selected)
