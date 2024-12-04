@@ -28,7 +28,6 @@ namespace FileManagerCLI.FileManager
         protected IoItem Selected;
         protected List<IoItem> DisplayItems = new List<IoItem>();
         protected int Offset;
-        public bool CalculateDirectorySize = false;
 
         protected StoredIoItem Stored
         {
@@ -59,7 +58,7 @@ namespace FileManagerCLI.FileManager
                     _xxPath += FileIoUtil.PathSeparator;
                 }
 
-                var items = FileIoUtil.GetDetailsForPath(Path, CalculateDirectorySize)
+                var items = FileIoUtil.GetDetailsForPath(Path,  Program.Config.DisplayItemSize)
                     .Where(e => ShowHidden || e.Hidden == false).ToList();
                 Selected = items.First();
                 Display(items, 0);

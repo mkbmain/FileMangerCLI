@@ -6,6 +6,8 @@ namespace FileManagerCLI.Settings
     public class Config
     {
         public bool ShowHiddenByDefault { get; set; }
+        
+        public bool DisplayItemSize { get; set; }
         public string LogFile { get; set; }
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -20,6 +22,7 @@ namespace FileManagerCLI.Settings
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public ConsoleColor ErrorLogColor { get; set; } = ConsoleColor.Red;
         
-        public bool DisplayIcons { get; set; }
+        public bool DisplayFolderIcons { get; set; }
+        public bool DisplayFileIcons { get; set; }
     }
 }

@@ -13,6 +13,6 @@ namespace FileManagerCLI.Data
 
         public long Size { get; set; }
 
-        public string DisplaySize => FileIoUtil.BytesToString(Size);
+        protected string DisplaySize => Program.Config.DisplayItemSize ? FileIoUtil.BytesToString(Size).PadRight(7) : "";
     }
 }

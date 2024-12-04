@@ -119,6 +119,9 @@ namespace FileManagerCLI
                     case ConsoleKey.Enter:
                         selectedDisplay.Select();
                         break;
+                    case ConsoleKey.R:
+                        selectedDisplay.Reload();
+                        break;
                     case ConsoleKey.L:
                         IfMod(readKey.Modifiers, () =>
                         {
@@ -135,7 +138,11 @@ namespace FileManagerCLI
                             Console.Clear();
                             return;
                         }
-
+                        Program.Config.DisplayItemSize = !Program.Config.DisplayItemSize;
+                        foreach (var item in displays)
+                        {
+                           item.Reload();
+                        }
                         break;
                     case ConsoleKey.M:
                         selectedDisplay.Move();
@@ -207,6 +214,9 @@ H = show hidden files on tab
 S = stores current selected item in buffer
 (mod) + s = clears buffer
 C = Copy (Copy the current item in buffer here)
-M = move (Moves the current item in buffer here)";
+M = move (Moves the current item in buffer here)
+R = Reload current display
+Q = Calculate Size toggle (please note on big systems this might take some time)
+";
     }
 }
