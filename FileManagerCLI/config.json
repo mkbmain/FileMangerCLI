@@ -5,6 +5,8 @@
   "LogFile": "app.log",
   "ShowHiddenByDefault": false,
   "DisplayFolderIcons" : true,
+  "SpaceAfterFolderIcon" : true,
   "DisplayFileIcons" : true,
+  "SpaceAfterFIleIcon" : false,
   "DisplayItemSize" : false
 }

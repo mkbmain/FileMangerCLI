@@ -123,7 +123,8 @@ namespace FileManagerCLI.FileManager
         {
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.BackgroundColor =  Program.Config.BackgroundColor;
-            Console.ForegroundColor = type == LogType.Error ? Program.Config.ErrorLogColor : Program.Config.ForegroundColor;
+            Console.ForegroundColor = type == LogType.Error ? Program.Config.
+                ErrorLogColor : Program.Config.ForegroundColor;
             Console.Write(FitWidth(comment, true, Console.WindowWidth));
             if(type ==LogType.Draw) return;
             LogEvent?.Invoke(caller, new LogEvent {Log = comment, LogType = type, Exception = exception});
