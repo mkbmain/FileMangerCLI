@@ -1,12 +1,11 @@
-namespace FileManagerCLI.Enums
+namespace FileManagerCLI.Enums;
+
+public enum MoveSelected
 {
-    public enum MoveSelected
-    {
-        OneUp,
-        OneDown,
-        TenUp,
-        TenDown,
-        Bottom,
-        Top
-    }
+    OneUp,
+    OneDown,
+    TenUp,
+    TenDown,
+    Bottom,
+    Top
 }

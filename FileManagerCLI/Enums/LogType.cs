@@ -1,9 +1,8 @@
-namespace FileManagerCLI.Enums
+namespace FileManagerCLI.Enums;
+
+public enum LogType
 {
-    public enum LogType
-    {
-        Error,
-        Info,
-        Draw
-    }
+    Error,
+    Info,
+    Draw
 }

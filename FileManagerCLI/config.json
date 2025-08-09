@@ -7,6 +7,6 @@
   "DisplayFolderIcons" : true,
   "SpaceAfterFolderIcon" : true,
   "DisplayFileIcons" : true,
-  "SpaceAfterFIleIcon" : false,
+  "SpaceAfterFIleIcon" : true,
   "DisplayItemSize" : false
 }

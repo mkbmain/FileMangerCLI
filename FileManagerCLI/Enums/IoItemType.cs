@@ -1,9 +1,8 @@
-namespace FileManagerCLI.Enums
+namespace FileManagerCLI.Enums;
+
+public enum IoItemType
 {
-    public enum IoItemType
-    {
-        File,
-        Directory,
-        Back
-    }
+    File,
+    Directory,
+    Back
 }
