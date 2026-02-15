@@ -4,9 +4,9 @@
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
   "ShowHiddenByDefault": false,
-  "DisplayFolderIcons" : true,
-  "SpaceAfterFolderIcon" : true,
-  "DisplayFileIcons" : true,
-  "SpaceAfterFIleIcon" : true,
+  "FileIcon" : "",
+  "FolderIconsOptions" : "ShowWithPadding",
+  "FileIconsOptions" : "ShowWithPadding",
+  "DisplayTrimOptions" : "TrimEnd",
   "DisplayItemSize" : false
 }

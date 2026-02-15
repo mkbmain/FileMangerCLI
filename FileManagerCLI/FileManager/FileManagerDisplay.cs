@@ -144,7 +144,7 @@ public abstract class FileManagerDisplay
         Console.SetCursorPosition(_startLeft(), y + 2);
         Console.BackgroundColor = selected ? Program.Config.ForegroundColor : Program.Config.BackgroundColor;
         Console.ForegroundColor = selected ? Program.Config.BackgroundColor : Program.Config.ForegroundColor;
-        Console.Write(FitWidth(text, false));
+        Console.Write(FitWidth(text, Program.Config.DisplayTrimOptions == TrimOptions.TrimEnd));
     }
 
     private void WriteStored()
