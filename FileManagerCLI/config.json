@@ -4,7 +4,6 @@
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
   "ShowHiddenByDefault": false,
-  "FileIcon" : "",
   "FolderIconsOptions" : "ShowWithPadding",
   "FileIconsOptions" : "ShowWithPadding",
   "DisplayTrimOptions" : "TrimEnd",
