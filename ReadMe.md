@@ -9,11 +9,18 @@ to change basic usage of the app
   "ErrorLogColor":"Red",
   "LogFile": "app.log",
   "ShowHiddenByDefault": false,
-  "DisplayFolderIcons" : true,
-  "DisplayFileIcons" : true,
+  "FolderIcons" : "ShowWithPadding",
+  "FileIcons" : "ShowWithPadding",
+  "DisplayTrimOptions" : "TrimEnd",
   "DisplayItemSize" : false
 }
 ```
+Colors options: https://learn.microsoft.com/en-us/dotnet/api/system.consolecolor?view=net-10.0
+
+FolderIconsOptions and FileIconsOptions:    Hide, Show, ShowWithPadding
+
+Display Trim Options:     TrimStart, TrimEnd
+
 Also allows a mod key to be set using [Enum From System](https://learn.microsoft.com/en-us/dotnet/api/system.consolemodifiers) but this is not officially supported by default mod key will be CTRL
 
 ### Controls

@@ -22,11 +22,12 @@ public class Config
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public ConsoleColor ErrorLogColor { get; set; } = ConsoleColor.Red;
 
-    public bool DisplayFolderIcons { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public IconsOptions FolderIconsOptions { get; set; } = IconsOptions.Hide;
 
-    public bool SpaceAfterFolderIcon { get; set; }
-
-    public bool DisplayFileIcons { get; set; }
-
-    public bool SpaceAfterFIleIcon { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public IconsOptions FileIconsOptions { get; set; } = IconsOptions.Hide;
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TrimOptions DisplayTrimOptions { get; set; } = TrimOptions.TrimEnd;
 }
