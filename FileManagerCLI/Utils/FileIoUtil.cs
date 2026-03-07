@@ -11,14 +11,13 @@ public static class FileIoUtil
 {
     public static readonly string PathSeparator = Path.Combine(" ", " ").Trim();
 
-    public static IEnumerable<IoItem> GetDetailsForPath(string path, bool getDirectorySize)
+    public static IEnumerable<IoItem> GetDetailsForPath(string path)
     {
-        var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)),
-            getDirectorySize);
+        var folders = ProjectToIoItem(Directory.GetDirectories(path).Select(w => new DirectoryInfo(w)));
         var files = ProjectToIoItem(Directory.GetFiles(path).Select(w => new FileInfo(w)));
         var part = folders.Concat(files);
 
-        if (path.ToCharArray().Count(x => PathSeparator.First() == x) > 1)
+        if (new DirectoryInfo(path).Parent != null)
         {
             return new[] { new IoItem { Hidden = false, IoType = IoItemType.Back, Name = ".." } }.Concat(part);
         }
@@ -26,7 +25,7 @@ public static class FileIoUtil
         return part;
     }
 
-    private static readonly string[] Suffix = { "", "K", "M", "G", "T", "P", "E" }; //Longs run out around EB
+    private static readonly string[] Suffix = { "", "K", "M", "G", "T", "P", "E" };
 
     public static string BytesToString(long byteCount)
     {
@@ -39,7 +38,6 @@ public static class FileIoUtil
 
     public static void DirectoryCopy(string sourceDirName, string destDirName)
     {
-        // Get the subdirectories for the specified directory.
         var dir = new DirectoryInfo(sourceDirName);
 
         if (!dir.Exists)
@@ -48,13 +46,12 @@ public static class FileIoUtil
                 $"Source directory does not exist or could not be found: {sourceDirName}");
         }
 
-        // If the destination directory doesn't exist, create it.       
         Directory.CreateDirectory(destDirName);
 
         foreach (var file in dir.GetFiles())
         {
             var tempPath = Path.Combine(destDirName, file.Name);
-            file.CopyTo(tempPath, false);
+            file.CopyTo(tempPath, true);
         }
 
         foreach (var directoryInfo in dir.GetDirectories())
@@ -64,25 +61,24 @@ public static class FileIoUtil
         }
     }
 
-    private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items, bool getDirectorySize)
-        => ProjectToIoItem(items, IoItemType.Directory, f => SizeOfDirectory(f.FullName, getDirectorySize));
-
-    private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) =>
-        ProjectToIoItem(items, IoItemType.File, info => info.Length);
-
-    private static long SizeOfDirectory(string path, bool getSizeOfDirectory)
+    public static long SizeOfDirectory(string path)
     {
-        if (!getSizeOfDirectory) return -1;
         try
         {
             return Directory.GetFiles(path).Sum(e => new FileInfo(e).Length) +
-                   Directory.GetDirectories(path).Sum(e => SizeOfDirectory(e, true));
+                   Directory.GetDirectories(path).Sum(e => SizeOfDirectory(e));
         }
         catch (Exception)
         {
             return -1;
         }
     }
+
+    private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<DirectoryInfo> items)
+        => ProjectToIoItem(items, IoItemType.Directory, _ => -1L);
+
+    private static IOrderedEnumerable<IoItem> ProjectToIoItem(IEnumerable<FileInfo> items) =>
+        ProjectToIoItem(items, IoItemType.File, info => info.Length);
 
     private static IOrderedEnumerable<IoItem> ProjectToIoItem<T>(IEnumerable<T> fileSystemInfos, IoItemType type,
         Func<T, long> size) where T : FileSystemInfo =>

@@ -166,6 +166,15 @@ class Program
                     selectedDisplay.Store();
 
                     break;
+                case ConsoleKey.F2:
+                    selectedDisplay.Rename();
+                    break;
+                case ConsoleKey.F7:
+                    selectedDisplay.CreateDirectory();
+                    break;
+                case ConsoleKey.F8:
+                    selectedDisplay.CreateFile();
+                    break;
             }
         }
     }
@@ -209,13 +218,17 @@ B = Top directory
 H = show hidden files on tab
 (mod) + q = exit
 
-(mod) + d Deletes current selected file /folder
+F2 = Rename selected file or folder
+F7 = New directory
+F8 = New file
+(mod) + d = Delete current selected file/folder
 
 S = stores current selected item in buffer
 (mod) + s = clears buffer
 C = Copy (Copy the current item in buffer here)
 M = move (Moves the current item in buffer here)
 R = Reload current display
-Q = Calculate Size toggle (please note on big systems this might take some time)
+Q = Calculate Size toggle (sizes load async in background)
+(mod) + l = Edit current path (Tab/Shift+Tab to cycle completions)
 ";
 }

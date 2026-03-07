@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using FileManagerCLI.Data;
 using FileManagerCLI.Enums;
 using FileManagerCLI.Utils;
@@ -19,15 +21,16 @@ public abstract class FileManagerDisplay
     public static event LogEventHandler LogEvent;
 
     private int _startLeft() =>
-        StartLeftPercentPercent == 0 ? 0 : (int) (Console.WindowWidth * StartLeftPercentPercent);
+        StartLeftPercentPercent == 0 ? 0 : (int)(Console.WindowWidth * StartLeftPercentPercent);
 
     protected decimal StartLeftPercentPercent;
     private string _xxPath;
-    private static StoredIoItem _xxstored; // we only want 1 stored globally
+    private static StoredIoItem _xxstored;
     protected decimal WidthPercent;
     protected IoItem Selected;
     protected List<IoItem> DisplayItems = new List<IoItem>();
     protected int Offset;
+    private CancellationTokenSource _sizeCts;
 
     protected StoredIoItem Stored
     {
@@ -39,7 +42,7 @@ public abstract class FileManagerDisplay
         }
     }
 
-    protected FileManagerDisplay(bool showHidden,decimal widthPercent, decimal startLeftPercent)
+    protected FileManagerDisplay(bool showHidden, decimal widthPercent, decimal startLeftPercent)
     {
         ShowHidden = showHidden;
         WidthPercent = widthPercent;
@@ -58,11 +61,38 @@ public abstract class FileManagerDisplay
                 _xxPath += FileIoUtil.PathSeparator;
             }
 
-            var items = FileIoUtil.GetDetailsForPath(Path,  Program.Config.DisplayItemSize)
+            _sizeCts?.Cancel();
+            _sizeCts = new CancellationTokenSource();
+
+            var items = FileIoUtil.GetDetailsForPath(Path)
                 .Where(e => ShowHidden || e.Hidden == false).ToList();
             Selected = items.First();
             Display(items, 0);
+
+            if (Program.Config.DisplayItemSize)
+                StartSizeComputationAsync(_sizeCts.Token);
         }
+    }
+
+    private void StartSizeComputationAsync(CancellationToken token)
+    {
+        var dirs = DisplayItems
+            .Where(e => e.IoType == IoItemType.Directory)
+            .ToList();
+        var currentPath = _xxPath;
+
+        Task.Run(() =>
+        {
+            foreach (var item in dirs)
+            {
+                if (token.IsCancellationRequested) return;
+                item.Size = FileIoUtil.SizeOfDirectory(System.IO.Path.Combine(currentPath, item.Name));
+                if (token.IsCancellationRequested) return;
+                var index = DisplayItems.IndexOf(item);
+                if (index >= Offset && index < Offset + WindowSize.Height)
+                    OutPutDisplay(item.DisplayName, index - Offset, item == Selected);
+            }
+        }, token);
     }
 
     protected void Display(IEnumerable<IoItem> items, int offset)
@@ -80,7 +110,7 @@ public abstract class FileManagerDisplay
     {
         this.WidthPercent = widthPercent;
         WindowSize = new Size(
-            Math.Min((int) (Console.WindowWidth * widthPercent), Console.WindowWidth - _startLeft()),
+            Math.Min((int)(Console.WindowWidth * widthPercent), Console.WindowWidth - _startLeft()),
             Console.WindowHeight - HeightOffset);
         int i;
         for (i = Offset; i < Math.Min(DisplayItems.Count, WindowSize.Height + Offset); i++)
@@ -122,19 +152,17 @@ public abstract class FileManagerDisplay
     protected static void WriteLog(object caller, string comment, LogType type, Exception exception = null)
     {
         Console.SetCursorPosition(0, Console.WindowHeight - 1);
-        Console.BackgroundColor =  Program.Config.BackgroundColor;
-        Console.ForegroundColor = type == LogType.Error ? Program.Config.
-            ErrorLogColor : Program.Config.ForegroundColor;
+        Console.BackgroundColor = Program.Config.BackgroundColor;
+        Console.ForegroundColor = type == LogType.Error ? Program.Config.ErrorLogColor : Program.Config.ForegroundColor;
         Console.Write(FitWidth(comment, true, Console.WindowWidth));
-        if(type ==LogType.Draw) return;
-        LogEvent?.Invoke(caller, new LogEvent {Log = comment, LogType = type, Exception = exception});
+        if (type == LogType.Draw) return;
+        LogEvent?.Invoke(caller, new LogEvent { Log = comment, LogType = type, Exception = exception });
     }
-
 
     protected void OutPutDisplay(string text, int y, bool selected)
     {
         if (WindowSize.Width !=
-            Math.Min((int) (Console.WindowWidth * WidthPercent), Console.WindowWidth - _startLeft()) ||
+            Math.Min((int)(Console.WindowWidth * WidthPercent), Console.WindowWidth - _startLeft()) ||
             WindowSize.Height != Console.WindowHeight - HeightOffset)
         {
             Display(DisplayItems, Offset);
@@ -151,10 +179,47 @@ public abstract class FileManagerDisplay
     {
         Console.BackgroundColor = Program.Config.BackgroundColor;
         Console.ForegroundColor = Program.Config.ForegroundColor;
-        Console.SetCursorPosition(0, 1); // there is only one of these we force it to always be 0
+        Console.SetCursorPosition(0, 1);
         Console.Write(FitWidth(Stored?.FullPath ?? "", false, Console.WindowWidth));
     }
 
+    protected string ReadName(string prompt)
+    {
+        var input = "";
+        Console.CursorVisible = true;
+        while (true)
+        {
+            Console.SetCursorPosition(0, Console.WindowHeight - 1);
+            Console.BackgroundColor = Program.Config.ForegroundColor;
+            Console.ForegroundColor = Program.Config.BackgroundColor;
+            var display = $"{prompt}: {input}";
+            Console.Write(FitWidth(display, true, Console.WindowWidth));
+            Console.SetCursorPosition(Math.Min(display.Length, Console.WindowWidth - 1), Console.WindowHeight - 1);
+
+            var key = Console.ReadKey(true);
+            switch (key.Key)
+            {
+                case ConsoleKey.Enter:
+                    Console.CursorVisible = false;
+                    WriteLog(this, "", LogType.Draw);
+                    return input;
+                case ConsoleKey.Escape:
+                    Console.CursorVisible = false;
+                    WriteLog(this, "", LogType.Draw);
+                    return null;
+                case ConsoleKey.Backspace:
+                    if (input.Length > 0)
+                        input = input[..^1];
+                    break;
+                default:
+                    if (!char.IsControl(key.KeyChar))
+                        input += key.KeyChar;
+                    break;
+            }
+        }
+    }
+
+    protected void RefreshDisplay() => Display(DisplayItems, Offset);
 
     private string FitWidth(string format, bool keepStart) => FitWidth(format ?? "", keepStart, WindowSize.Width);
 

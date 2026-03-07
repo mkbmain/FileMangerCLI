@@ -130,6 +130,59 @@ public class FileManagerWindow : FileManagerDisplay
         }
     }
 
+    public void Rename()
+    {
+        if (Selected.IoType != IoItemType.File && Selected.IoType != IoItemType.Directory) return;
+        var newName = ReadName($"Rename '{Selected.Name}'");
+        if (string.IsNullOrWhiteSpace(newName) || newName == Selected.Name)
+        {
+            Redraw();
+            return;
+        }
+
+        var oldPath = System.IO.Path.Combine(Path, Selected.Name);
+        var newPath = System.IO.Path.Combine(Path, newName);
+
+        bool renamed = Selected.IoType == IoItemType.File
+            ? RunWithErrorHandle(() => File.Move(oldPath, newPath), $"Failed to rename {oldPath}")
+            : RunWithErrorHandle(() => Directory.Move(oldPath, newPath), $"Failed to rename {oldPath}");
+
+        if (renamed) Path = Path;
+        else Redraw();
+    }
+
+    public void CreateDirectory()
+    {
+        var name = ReadName("New folder name");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Redraw();
+            return;
+        }
+
+        var newPath = System.IO.Path.Combine(Path, name);
+        var created = RunWithErrorHandle(() => Directory.CreateDirectory(newPath),
+            $"Failed to create directory {newPath}");
+        if (created) Path = Path;
+        else Redraw();
+    }
+
+    public void CreateFile()
+    {
+        var name = ReadName("New file name");
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            Redraw();
+            return;
+        }
+
+        var newPath = System.IO.Path.Combine(Path, name);
+        var created = RunWithErrorHandle(() => { using var _ = File.Create(newPath); },
+            $"Failed to create file {newPath}");
+        if (created) Path = Path;
+        else Redraw();
+    }
+
     private static readonly Dictionary<string, char> PathCharacters = "ABCDEFGHIJKLMNOPQRS\\/TUVWXYZ.-_"
         .ToCharArray()
         .GroupBy(e => e.ToString())
@@ -140,7 +193,8 @@ public class FileManagerWindow : FileManagerDisplay
         Console.SetCursorPosition(0, 0);
         Console.Write(FitWidth(Path, false, Console.WindowWidth));
         var workingPath = Path;
-        var tab = false;
+        List<IoItem> tabItems = null;
+        int tabIndex = -1;
         while (true)
         {
             Console.CursorVisible = true;
@@ -163,53 +217,42 @@ public class FileManagerWindow : FileManagerDisplay
                     WriteLog(this, $"Can not find directory{workingPath}", LogType.Info);
                     break;
                 case ConsoleKey.Tab:
+                {
                     var partialPathParts = workingPath.Split(FileIoUtil.PathSeparator);
                     var partialPath = string.Join(FileIoUtil.PathSeparator,
                         partialPathParts.Take(partialPathParts.Length - 1));
-                    if (!Directory.Exists(partialPath))
-                    {
-                        continue;
-                    }
+                    if (!Directory.Exists(partialPath)) continue;
 
-                    var items = FileIoUtil.GetDetailsForPath(partialPath, false)
-                        .Where(e => e.IoType == IoItemType.Directory).ToList();
-                    if (!items.Any())
-                    {
-                        continue;
-                    }
+                    var isShift = key.Modifiers.HasFlag(ConsoleModifiers.Shift);
 
-                    if (tab)
+                    if (tabItems == null)
                     {
-                        var match = items.FirstOrDefault(w => w.Name == partialPathParts.Last());
-                        if (match is null)
-                        {
-                            tab = false;
-                            continue;
-                        }
-
-                        workingPath = System.IO.Path.Combine(partialPath,
-                            match == items.Last() ? items.Last().Name : items[items.IndexOf(match) + 1].Name);
+                        var prefix = partialPathParts.Last();
+                        tabItems = FileIoUtil.GetDetailsForPath(partialPath)
+                            .Where(e => e.IoType == IoItemType.Directory && e.Name.StartsWith(prefix))
+                            .ToList();
+                        if (!tabItems.Any()) continue;
+                        tabIndex = isShift ? tabItems.Count - 1 : 0;
                     }
                     else
                     {
-                        var item = items.FirstOrDefault(x => x.Name.StartsWith(partialPathParts.Last()));
-                        if (item is null)
-                        {
-                            continue;
-                        }
-
-                        tab = true;
-                        workingPath = System.IO.Path.Combine(partialPath, item.Name);
+                        tabIndex = isShift
+                            ? (tabIndex - 1 + tabItems.Count) % tabItems.Count
+                            : (tabIndex + 1) % tabItems.Count;
                     }
 
+                    workingPath = System.IO.Path.Combine(partialPath, tabItems[tabIndex].Name);
                     break;
-
+                }
                 case ConsoleKey.Delete:
                 case ConsoleKey.Backspace:
+                    tabItems = null;
+                    tabIndex = -1;
                     workingPath = workingPath[..^1];
                     break;
                 default:
-
+                    tabItems = null;
+                    tabIndex = -1;
                     if (PathCharacters.ContainsKey(key.KeyChar.ToString().ToUpper()))
                     {
                         workingPath += key.Modifiers.HasFlag(ConsoleModifiers.Shift)
@@ -222,9 +265,9 @@ public class FileManagerWindow : FileManagerDisplay
         }
     }
 
-    public void Reload()=> Path = Path;
-        
-    public void Redraw() => Display(DisplayItems, Offset);
+    public void Reload() => Path = Path;
+
+    public void Redraw() => RefreshDisplay();
 
     public void MoveSelected(MoveSelected selected)
     {

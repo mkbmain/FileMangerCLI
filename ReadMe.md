@@ -30,7 +30,6 @@ Simple key bindings
 left/right = move between tabs
 up/down = move up and down in a tab (use mod key to jump 10 at a time)
 
-
 (mod) + left/right = will create new tabs or collapse all tabs to right
 pageup/pagedown = go to top of current tab or bottom
 Enter = select
@@ -40,12 +39,18 @@ K = will kill current tab
 H = show hidden files on tab
 (mod) + q = exit
 
-(mod) + d Deletes current selected file /folder
+F2 = Rename selected file or folder
+F7 = New directory
+F8 = New file
+(mod) + d = Delete current selected file/folder
 
 S = stores current selected item in buffer
 (mod) + s = clears buffer
 C = Copy (Copy the current item in buffer here)
 M = move (Moves the current item in buffer here)
+R = Reload current display
+Q = Calculate Size toggle (sizes load async in background)
+(mod) + l = Edit current path (Tab/Shift+Tab to cycle completions)
 ```
 (mod) by default is control
 

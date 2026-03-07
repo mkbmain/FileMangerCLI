@@ -13,5 +13,13 @@ public class IoItemDetails
 
     public long Size { get; set; }
 
-    protected string DisplaySize => Program.Config.DisplayItemSize ? FileIoUtil.BytesToString(Size).PadRight(7) : "";
+    protected string DisplaySize
+    {
+        get
+        {
+            if (!Program.Config.DisplayItemSize) return "";
+            if (IoType == IoItemType.Back) return "       ";
+            return Size < 0 ? "...    " : FileIoUtil.BytesToString(Size).PadRight(7);
+        }
+    }
 }
