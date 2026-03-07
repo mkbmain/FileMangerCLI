@@ -29,6 +29,21 @@ public class FileManagerWindow : FileManagerDisplay
 
         var newPath = System.IO.Path.Combine(Path, Stored.Name);
         if (newPath == Stored.FullPath) return false;
+
+        bool destinationExists = Stored.IoType == IoItemType.File
+            ? File.Exists(newPath)
+            : Directory.Exists(newPath);
+
+        if (destinationExists)
+        {
+            var confirm = ReadName($"Overwrite '{Stored.Name}'? (y/n)");
+            if (confirm?.ToLower() != "y")
+            {
+                Redraw();
+                return false;
+            }
+        }
+
         bool copied;
         switch (Stored.IoType)
         {
@@ -73,6 +88,14 @@ public class FileManagerWindow : FileManagerDisplay
 
     public void Delete()
     {
+        if (Selected.IoType != IoItemType.File && Selected.IoType != IoItemType.Directory) return;
+        var confirm = ReadName($"Delete '{Selected.Name}'? (y/n)");
+        if (confirm?.ToLower() != "y")
+        {
+            Redraw();
+            return;
+        }
+
         Delete(System.IO.Path.Combine(Path, Selected.Name), Selected.IoType);
     }
 

@@ -24,8 +24,8 @@ public abstract class FileManagerDisplay
         StartLeftPercentPercent == 0 ? 0 : (int)(Console.WindowWidth * StartLeftPercentPercent);
 
     protected decimal StartLeftPercentPercent;
-    private string _xxPath;
-    private static StoredIoItem _xxstored;
+    private string _path;
+    private static StoredIoItem _stored;
     protected decimal WidthPercent;
     protected IoItem Selected;
     protected List<IoItem> DisplayItems = new List<IoItem>();
@@ -34,10 +34,10 @@ public abstract class FileManagerDisplay
 
     protected StoredIoItem Stored
     {
-        get => _xxstored;
+        get => _stored;
         set
         {
-            _xxstored = value;
+            _stored = value;
             WriteStored();
         }
     }
@@ -52,13 +52,13 @@ public abstract class FileManagerDisplay
 
     protected string Path
     {
-        get => _xxPath;
+        get => _path;
         set
         {
-            _xxPath = value;
-            if (_xxPath.EndsWith(FileIoUtil.PathSeparator) == false)
+            _path = value;
+            if (_path.EndsWith(FileIoUtil.PathSeparator) == false)
             {
-                _xxPath += FileIoUtil.PathSeparator;
+                _path += FileIoUtil.PathSeparator;
             }
 
             _sizeCts?.Cancel();
@@ -79,7 +79,7 @@ public abstract class FileManagerDisplay
         var dirs = DisplayItems
             .Where(e => e.IoType == IoItemType.Directory)
             .ToList();
-        var currentPath = _xxPath;
+        var currentPath = _path;
 
         Task.Run(() =>
         {

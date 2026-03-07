@@ -155,7 +155,11 @@ class Program
                     selectedDisplay.Copy();
                     break;
                 case ConsoleKey.D:
-                    IfMod(readKey.Modifiers, selectedDisplay.Delete);
+                    IfMod(readKey.Modifiers, () =>
+                    {
+                        selectedDisplay.Delete();
+                        foreach (var d in displays.Where(d => d != selectedDisplay)) d.Reload();
+                    });
                     break;
                 case ConsoleKey.S:
                     if (IfMod(readKey.Modifiers))
