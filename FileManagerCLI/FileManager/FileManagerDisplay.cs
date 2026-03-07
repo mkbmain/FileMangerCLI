@@ -80,6 +80,8 @@ public abstract class FileManagerDisplay
             .Where(e => e.IoType == IoItemType.Directory)
             .ToList();
         var currentPath = _path;
+        var snapshot = DisplayItems.ToList();
+        var offset = Offset;
 
         Task.Run(() =>
         {
@@ -88,9 +90,9 @@ public abstract class FileManagerDisplay
                 if (token.IsCancellationRequested) return;
                 item.Size = FileIoUtil.SizeOfDirectory(System.IO.Path.Combine(currentPath, item.Name));
                 if (token.IsCancellationRequested) return;
-                var index = DisplayItems.IndexOf(item);
-                if (index >= Offset && index < Offset + WindowSize.Height)
-                    OutPutDisplay(item.DisplayName, index - Offset, item == Selected);
+                var index = snapshot.IndexOf(item);
+                if (index >= offset && index < offset + WindowSize.Height)
+                    OutPutDisplay(item.DisplayName, index - offset, item == Selected);
             }
         }, token);
     }

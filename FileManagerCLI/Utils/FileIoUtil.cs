@@ -9,7 +9,7 @@ namespace FileManagerCLI.Utils;
 
 public static class FileIoUtil
 {
-    public static readonly string PathSeparator = Path.Combine(" ", " ").Trim();
+    public static readonly string PathSeparator = Path.DirectorySeparatorChar.ToString();
 
     public static IEnumerable<IoItem> GetDetailsForPath(string path)
     {

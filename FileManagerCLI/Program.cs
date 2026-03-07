@@ -14,7 +14,7 @@ namespace FileManagerCLI;
 class Program
 {
     public static Config Config = new();
-    private static List<LogEvent> _logEvents = new();
+    private static Queue<LogEvent> _logEvents = new();
 
     private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
     {
@@ -35,7 +35,7 @@ class Program
         {
             var json = File.ReadAllText(ConfigFileName);
             var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
-            Config = config;
+            Config = config ?? new Config();
         }
 
         Console.WriteLine(KeyBindings.Replace("(mod)", Config.ModKey.ToString()));
@@ -186,12 +186,10 @@ class Program
 
     private static void FileManagerWindowOnLogEvent(object sender, LogEvent logEvent)
     {
-        if (_logEvents.Count > 100)
-        {
-            _logEvents = _logEvents.Skip(1).ToList();
-        }
+        if (_logEvents.Count >= 100)
+            _logEvents.Dequeue();
 
-        _logEvents.Add(logEvent);
+        _logEvents.Enqueue(logEvent);
 
         if (string.IsNullOrWhiteSpace(Config.LogFile)) return;
         using var sw = new StreamWriter(File.Open(Config.LogFile, FileMode.Append), Encoding.Default);

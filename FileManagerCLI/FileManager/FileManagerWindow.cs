@@ -82,8 +82,72 @@ public class FileManagerWindow : FileManagerDisplay
 
     public void Move()
     {
-        if (!Copy()) return;
-        Delete(Stored.FullPath, Stored.IoType);
+        if (Stored is null) return;
+        var destPath = System.IO.Path.Combine(Path, Stored.Name);
+        if (destPath == Stored.FullPath) return;
+
+        bool destinationExists = Stored.IoType == IoItemType.File
+            ? File.Exists(destPath)
+            : Directory.Exists(destPath);
+
+        if (destinationExists)
+        {
+            var confirm = ReadName($"Overwrite '{Stored.Name}'? (y/n)");
+            if (confirm?.ToLower() != "y")
+            {
+                Redraw();
+                return;
+            }
+        }
+
+        var stored = Stored;
+        bool moved = stored.IoType switch
+        {
+            IoItemType.File => MoveFile(stored.FullPath, destPath),
+            IoItemType.Directory => MoveDirectory(stored.FullPath, destPath),
+            _ => false
+        };
+
+        if (!moved) return;
+        Stored = null;
+        Path = Path;
+    }
+
+    private bool MoveFile(string source, string dest)
+    {
+        try
+        {
+            File.Move(source, dest, true);
+            return true;
+        }
+        catch (IOException)
+        {
+            // Cross-device move: fall back to copy + delete
+            bool copied = RunWithErrorHandle(() => File.Copy(source, dest, true),
+                $"Failed to Move file {dest}");
+            if (copied)
+                RunWithErrorHandle(() => Directory.Delete(source, true), $"Failed to clean up {source}");
+            return copied;
+        }
+    }
+
+
+    private bool MoveDirectory(string source, string dest)
+    {
+        try
+        {
+            Directory.Move(source, dest);
+            return true;
+        }
+        catch (IOException)
+        {
+            // Cross-device move: fall back to copy + delete
+            bool copied = RunWithErrorHandle(() => FileIoUtil.DirectoryCopy(source, dest),
+                $"Failed to move directory {source}");
+            if (copied)
+                RunWithErrorHandle(() => Directory.Delete(source, true), $"Failed to clean up {source}");
+            return copied;
+        }
     }
 
     public void Delete()
@@ -200,16 +264,16 @@ public class FileManagerWindow : FileManagerDisplay
         }
 
         var newPath = System.IO.Path.Combine(Path, name);
-        var created = RunWithErrorHandle(() => { using var _ = File.Create(newPath); },
+        var created = RunWithErrorHandle(() =>
+            {
+                using var _ = File.Create(newPath);
+            },
             $"Failed to create file {newPath}");
         if (created) Path = Path;
         else Redraw();
     }
 
-    private static readonly Dictionary<string, char> PathCharacters = "ABCDEFGHIJKLMNOPQRS\\/TUVWXYZ.-_"
-        .ToCharArray()
-        .GroupBy(e => e.ToString())
-        .ToDictionary(w => w.Key, w => w.First());
+    private static readonly HashSet<char> PathCharacters = new("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_ \\/");
 
     public void EditLocation()
     {
@@ -273,10 +337,13 @@ public class FileManagerWindow : FileManagerDisplay
                     tabIndex = -1;
                     workingPath = workingPath[..^1];
                     break;
+                case ConsoleKey.Escape:
+                    Console.CursorVisible = false;
+                    return;
                 default:
                     tabItems = null;
                     tabIndex = -1;
-                    if (PathCharacters.ContainsKey(key.KeyChar.ToString().ToUpper()))
+                    if (PathCharacters.Contains(char.ToUpper(key.KeyChar)))
                     {
                         workingPath += key.Modifiers.HasFlag(ConsoleModifiers.Shift)
                             ? key.KeyChar.ToString().ToUpper()
