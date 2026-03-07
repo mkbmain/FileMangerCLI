@@ -146,6 +146,7 @@ class Program
                     break;
                 case ConsoleKey.M:
                     selectedDisplay.Move();
+                    foreach (var d in displays.Where(d => d != selectedDisplay)) d.Reload();
                     break;
                 case ConsoleKey.B:
                     selectedDisplay.TopDirectory();
