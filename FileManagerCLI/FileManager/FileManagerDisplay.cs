@@ -66,7 +66,7 @@ public abstract class FileManagerDisplay
 
             var items = FileIoUtil.GetDetailsForPath(Path)
                 .Where(e => ShowHidden || e.Hidden == false).ToList();
-            Selected = items.First();
+            Selected = items.FirstOrDefault() ?? Selected;
             Display(items, 0);
 
             if (Program.Config.DisplayItemSize)
@@ -88,7 +88,7 @@ public abstract class FileManagerDisplay
             foreach (var item in dirs)
             {
                 if (token.IsCancellationRequested) return;
-                item.Size = FileIoUtil.SizeOfDirectory(System.IO.Path.Combine(currentPath, item.Name));
+                item.Size = FileIoUtil.SizeOfDirectory(System.IO.Path.Combine(currentPath, item.Name), token);
                 if (token.IsCancellationRequested) return;
                 var index = snapshot.IndexOf(item);
                 if (index >= offset && index < offset + WindowSize.Height)
@@ -185,23 +185,34 @@ public abstract class FileManagerDisplay
         Console.Write(FitWidth(Stored?.FullPath ?? "", false, Console.WindowWidth));
     }
 
-    protected string ReadName(string prompt)
+    protected string ReadName(
+        string prompt,
+        string initial = "",
+        Func<string, int, ConsoleKeyInfo, (string input, int cursorPos)> onTab = null,
+        Func<string, string> validateEnter = null)
     {
-        var input = "";
+        var input = initial;
+        var cursorPos = initial.Length;
+        var prefix = $"{prompt}: ";
         Console.CursorVisible = true;
         while (true)
         {
             Console.SetCursorPosition(0, Console.WindowHeight - 1);
             Console.BackgroundColor = Program.Config.ForegroundColor;
             Console.ForegroundColor = Program.Config.BackgroundColor;
-            var display = $"{prompt}: {input}";
-            Console.Write(FitWidth(display, true, Console.WindowWidth));
-            Console.SetCursorPosition(Math.Min(display.Length, Console.WindowWidth - 1), Console.WindowHeight - 1);
+            Console.Write(FitWidth(prefix + input, true, Console.WindowWidth));
+            Console.SetCursorPosition(Math.Min(prefix.Length + cursorPos, Console.WindowWidth - 1), Console.WindowHeight - 1);
 
             var key = Console.ReadKey(true);
             switch (key.Key)
             {
                 case ConsoleKey.Enter:
+                    var error = validateEnter?.Invoke(input);
+                    if (error != null)
+                    {
+                        WriteLog(this, error, LogType.Info);
+                        break;
+                    }
                     Console.CursorVisible = false;
                     WriteLog(this, "", LogType.Draw);
                     return input;
@@ -209,13 +220,39 @@ public abstract class FileManagerDisplay
                     Console.CursorVisible = false;
                     WriteLog(this, "", LogType.Draw);
                     return null;
+                case ConsoleKey.Tab:
+                    if (onTab != null)
+                        (input, cursorPos) = onTab(input, cursorPos, key);
+                    break;
                 case ConsoleKey.Backspace:
-                    if (input.Length > 0)
-                        input = input[..^1];
+                    if (cursorPos > 0)
+                    {
+                        input = input[..(cursorPos - 1)] + input[cursorPos..];
+                        cursorPos--;
+                    }
+                    break;
+                case ConsoleKey.Delete:
+                    if (cursorPos < input.Length)
+                        input = input[..cursorPos] + input[(cursorPos + 1)..];
+                    break;
+                case ConsoleKey.LeftArrow:
+                    if (cursorPos > 0) cursorPos--;
+                    break;
+                case ConsoleKey.RightArrow:
+                    if (cursorPos < input.Length) cursorPos++;
+                    break;
+                case ConsoleKey.Home:
+                    cursorPos = 0;
+                    break;
+                case ConsoleKey.End:
+                    cursorPos = input.Length;
                     break;
                 default:
                     if (!char.IsControl(key.KeyChar))
-                        input += key.KeyChar;
+                    {
+                        input = input[..cursorPos] + key.KeyChar + input[cursorPos..];
+                        cursorPos++;
+                    }
                     break;
             }
         }

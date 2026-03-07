@@ -212,7 +212,8 @@ public class FileManagerWindow : FileManagerDisplay
                 Path = System.IO.Path.Combine(Path, Selected.Name);
                 break;
             case IoItemType.Back:
-                Path = new DirectoryInfo(Path).Parent?.FullName;
+                var parent = new DirectoryInfo(Path).Parent?.FullName;
+                if (parent != null) Path = parent;
                 break;
         }
     }
@@ -273,86 +274,48 @@ public class FileManagerWindow : FileManagerDisplay
         else Redraw();
     }
 
-    private static readonly HashSet<char> PathCharacters = new("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_ \\/");
-
     public void EditLocation()
     {
-        Console.SetCursorPosition(0, 0);
-        Console.Write(FitWidth(Path, false, Console.WindowWidth));
-        var workingPath = Path;
         List<IoItem> tabItems = null;
         int tabIndex = -1;
-        while (true)
+        string lastTabInput = null;
+
+        (string, int) TabComplete(string input, int cursorPos, ConsoleKeyInfo key)
         {
-            Console.CursorVisible = true;
-            Console.BackgroundColor = Program.Config.ForegroundColor;
-            Console.ForegroundColor = Program.Config.BackgroundColor;
-            Console.SetCursorPosition(0, 0);
-            Console.Write(FitWidth(workingPath, false, Console.WindowWidth));
+            if (input != lastTabInput) { tabItems = null; tabIndex = -1; }
 
-            var key = Console.ReadKey(true);
-            switch (key.Key)
+            var parts = input.Split(FileIoUtil.PathSeparator);
+            var parentPath = string.Join(FileIoUtil.PathSeparator, parts.Take(parts.Length - 1));
+            if (!Directory.Exists(parentPath)) return (input, cursorPos);
+
+            var isShift = key.Modifiers.HasFlag(ConsoleModifiers.Shift);
+
+            if (tabItems == null)
             {
-                case ConsoleKey.Enter:
-                    if (Directory.Exists(workingPath))
-                    {
-                        Path = workingPath;
-                        Console.CursorVisible = false;
-                        return;
-                    }
-
-                    WriteLog(this, $"Can not find directory{workingPath}", LogType.Info);
-                    break;
-                case ConsoleKey.Tab:
-                {
-                    var partialPathParts = workingPath.Split(FileIoUtil.PathSeparator);
-                    var partialPath = string.Join(FileIoUtil.PathSeparator,
-                        partialPathParts.Take(partialPathParts.Length - 1));
-                    if (!Directory.Exists(partialPath)) continue;
-
-                    var isShift = key.Modifiers.HasFlag(ConsoleModifiers.Shift);
-
-                    if (tabItems == null)
-                    {
-                        var prefix = partialPathParts.Last();
-                        tabItems = FileIoUtil.GetDetailsForPath(partialPath)
-                            .Where(e => e.IoType == IoItemType.Directory && e.Name.StartsWith(prefix))
-                            .ToList();
-                        if (!tabItems.Any()) continue;
-                        tabIndex = isShift ? tabItems.Count - 1 : 0;
-                    }
-                    else
-                    {
-                        tabIndex = isShift
-                            ? (tabIndex - 1 + tabItems.Count) % tabItems.Count
-                            : (tabIndex + 1) % tabItems.Count;
-                    }
-
-                    workingPath = System.IO.Path.Combine(partialPath, tabItems[tabIndex].Name);
-                    break;
-                }
-                case ConsoleKey.Delete:
-                case ConsoleKey.Backspace:
-                    tabItems = null;
-                    tabIndex = -1;
-                    workingPath = workingPath[..^1];
-                    break;
-                case ConsoleKey.Escape:
-                    Console.CursorVisible = false;
-                    return;
-                default:
-                    tabItems = null;
-                    tabIndex = -1;
-                    if (PathCharacters.Contains(char.ToUpper(key.KeyChar)))
-                    {
-                        workingPath += key.Modifiers.HasFlag(ConsoleModifiers.Shift)
-                            ? key.KeyChar.ToString().ToUpper()
-                            : key.KeyChar.ToString().ToLower();
-                    }
-
-                    break;
+                var namePrefix = parts.Last();
+                tabItems = FileIoUtil.GetDetailsForPath(parentPath)
+                    .Where(e => e.IoType == IoItemType.Directory && e.Name.StartsWith(namePrefix))
+                    .ToList();
+                if (!tabItems.Any()) return (input, cursorPos);
+                tabIndex = isShift ? tabItems.Count - 1 : 0;
             }
+            else
+            {
+                tabIndex = isShift
+                    ? (tabIndex - 1 + tabItems.Count) % tabItems.Count
+                    : (tabIndex + 1) % tabItems.Count;
+            }
+
+            var newInput = System.IO.Path.Combine(parentPath, tabItems[tabIndex].Name);
+            lastTabInput = newInput;
+            return (newInput, newInput.Length);
         }
+
+        var result = ReadName("Path", Path,
+            onTab: TabComplete,
+            validateEnter: p => Directory.Exists(p) ? null : $"Cannot find directory: {p}");
+
+        if (result != null) Path = result;
     }
 
     public void Reload() => Path = Path;

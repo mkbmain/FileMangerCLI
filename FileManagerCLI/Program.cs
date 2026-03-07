@@ -64,16 +64,17 @@ class Program
             {
                 case ConsoleKey.LeftArrow:
                 {
+                    var idx = displays.IndexOf(selectedDisplay);
                     var wasMod = IfMod(readKey.Modifiers, () =>
                     {
-                        displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
+                        displays = displays.Take(idx + 1).ToList();
                         ChangeDisplays(displays);
                         return true;
                     });
 
                     if (!wasMod && selectedDisplay != displays.First())
                     {
-                        selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
+                        selectedDisplay = displays[idx - 1];
                     }
                 }
                     break;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using FileManagerCLI.Data;
 using FileManagerCLI.Enums;
 
@@ -61,12 +62,13 @@ public static class FileIoUtil
         }
     }
 
-    public static long SizeOfDirectory(string path)
+    public static long SizeOfDirectory(string path, CancellationToken token = default)
     {
         try
         {
+            if (token.IsCancellationRequested) return -1;
             return Directory.GetFiles(path).Sum(e => new FileInfo(e).Length) +
-                   Directory.GetDirectories(path).Sum(e => SizeOfDirectory(e));
+                   Directory.GetDirectories(path).Sum(e => SizeOfDirectory(e, token));
         }
         catch (Exception)
         {
