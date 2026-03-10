@@ -14,7 +14,7 @@ namespace FileManagerCLI;
 class Program
 {
     public static Config Config = new();
-    private static List<LogEvent> _logEvents = new();
+    private static Queue<LogEvent> _logEvents = new();
 
     private static void ChangeDisplays(IReadOnlyList<FileManagerWindow> fileManagerWindows)
     {
@@ -35,7 +35,7 @@ class Program
         {
             var json = File.ReadAllText(ConfigFileName);
             var config = System.Text.Json.JsonSerializer.Deserialize<Config>(json);
-            Config = config;
+            Config = config ?? new Config();
         }
 
         Console.WriteLine(KeyBindings.Replace("(mod)", Config.ModKey.ToString()));
@@ -64,16 +64,17 @@ class Program
             {
                 case ConsoleKey.LeftArrow:
                 {
+                    var idx = displays.IndexOf(selectedDisplay);
                     var wasMod = IfMod(readKey.Modifiers, () =>
                     {
-                        displays = displays.Take(displays.IndexOf(selectedDisplay) + 1).ToList();
+                        displays = displays.Take(idx + 1).ToList();
                         ChangeDisplays(displays);
                         return true;
                     });
 
                     if (!wasMod && selectedDisplay != displays.First())
                     {
-                        selectedDisplay = displays[displays.IndexOf(selectedDisplay) - 1];
+                        selectedDisplay = displays[idx - 1];
                     }
                 }
                     break;
@@ -146,6 +147,7 @@ class Program
                     break;
                 case ConsoleKey.M:
                     selectedDisplay.Move();
+                    foreach (var d in displays.Where(d => d != selectedDisplay)) d.Reload();
                     break;
                 case ConsoleKey.B:
                     selectedDisplay.TopDirectory();
@@ -154,7 +156,11 @@ class Program
                     selectedDisplay.Copy();
                     break;
                 case ConsoleKey.D:
-                    IfMod(readKey.Modifiers, selectedDisplay.Delete);
+                    IfMod(readKey.Modifiers, () =>
+                    {
+                        selectedDisplay.Delete();
+                        foreach (var d in displays.Where(d => d != selectedDisplay)) d.Reload();
+                    });
                     break;
                 case ConsoleKey.S:
                     if (IfMod(readKey.Modifiers))
@@ -166,18 +172,25 @@ class Program
                     selectedDisplay.Store();
 
                     break;
+                case ConsoleKey.F2:
+                    selectedDisplay.Rename();
+                    break;
+                case ConsoleKey.F7:
+                    selectedDisplay.CreateDirectory();
+                    break;
+                case ConsoleKey.F8:
+                    selectedDisplay.CreateFile();
+                    break;
             }
         }
     }
 
     private static void FileManagerWindowOnLogEvent(object sender, LogEvent logEvent)
     {
-        if (_logEvents.Count > 100)
-        {
-            _logEvents = _logEvents.Skip(1).ToList();
-        }
+        if (_logEvents.Count >= 100)
+            _logEvents.Dequeue();
 
-        _logEvents.Add(logEvent);
+        _logEvents.Enqueue(logEvent);
 
         if (string.IsNullOrWhiteSpace(Config.LogFile)) return;
         using var sw = new StreamWriter(File.Open(Config.LogFile, FileMode.Append), Encoding.Default);
@@ -209,13 +222,17 @@ B = Top directory
 H = show hidden files on tab
 (mod) + q = exit
 
-(mod) + d Deletes current selected file /folder
+F2 = Rename selected file or folder
+F7 = New directory
+F8 = New file
+(mod) + d = Delete current selected file/folder
 
 S = stores current selected item in buffer
 (mod) + s = clears buffer
 C = Copy (Copy the current item in buffer here)
 M = move (Moves the current item in buffer here)
 R = Reload current display
-Q = Calculate Size toggle (please note on big systems this might take some time)
+Q = Calculate Size toggle (sizes load async in background)
+(mod) + l = Edit current path (Tab/Shift+Tab to cycle completions)
 ";
 }
