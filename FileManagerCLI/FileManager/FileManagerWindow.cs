@@ -8,14 +8,10 @@ using FileManagerCLI.Utils;
 
 namespace FileManagerCLI.FileManager;
 
-public class FileManagerWindow : FileManagerDisplay
+public class FileManagerWindow(bool showHidden = true, decimal widthPercent = 1, decimal startLeftPercent = 0, string path = null)
+    : FileManagerDisplay(showHidden, widthPercent,
+        startLeftPercent, path)
 {
-    public FileManagerWindow(bool showHidden = true, decimal widthPercent = 1, decimal startLeftPercent = 0) : base(
-        showHidden, widthPercent,
-        startLeftPercent)
-    {
-    }
-
     public void UpdateDisplayDetails(decimal widthPercent, decimal startLeftPercent)
     {
         WidthPercent = widthPercent;
@@ -23,6 +19,7 @@ public class FileManagerWindow : FileManagerDisplay
         Redraw();
     }
 
+    public string GetPath() => Path;
     public bool Copy()
     {
         if (Stored is null) return false;
@@ -282,7 +279,11 @@ public class FileManagerWindow : FileManagerDisplay
 
         (string, int) TabComplete(string input, int cursorPos, ConsoleKeyInfo key)
         {
-            if (input != lastTabInput) { tabItems = null; tabIndex = -1; }
+            if (input != lastTabInput)
+            {
+                tabItems = null;
+                tabIndex = -1;
+            }
 
             var parts = input.Split(FileIoUtil.PathSeparator);
             var parentPath = string.Join(FileIoUtil.PathSeparator, parts.Take(parts.Length - 1));

@@ -58,7 +58,7 @@ class Program
                     item.Redraw();
                 }
             }
-                
+
             var readKey = Console.ReadKey(true);
             switch (readKey.Key)
             {
@@ -80,9 +80,10 @@ class Program
                     break;
                 case ConsoleKey.RightArrow:
                 {
+                    var path = selectedDisplay.GetPath();
                     var wasMod = IfMod(readKey.Modifiers, () =>
                     {
-                        displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault));
+                        displays.Add(new FileManagerWindow(Config.ShowHiddenByDefault, path: path));
                         ChangeDisplays(displays);
                         selectedDisplay = displays.Last();
                         return true;
@@ -139,11 +140,13 @@ class Program
                         Console.Clear();
                         return;
                     }
+
                     Program.Config.DisplayItemSize = !Program.Config.DisplayItemSize;
                     foreach (var item in displays)
                     {
                         item.Reload();
                     }
+
                     break;
                 case ConsoleKey.M:
                     selectedDisplay.Move();

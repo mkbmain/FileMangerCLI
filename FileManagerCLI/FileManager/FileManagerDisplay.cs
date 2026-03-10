@@ -42,12 +42,12 @@ public abstract class FileManagerDisplay
         }
     }
 
-    protected FileManagerDisplay(bool showHidden, decimal widthPercent, decimal startLeftPercent)
+    protected FileManagerDisplay(bool showHidden, decimal widthPercent, decimal startLeftPercent, string path = null)
     {
         ShowHidden = showHidden;
         WidthPercent = widthPercent;
         StartLeftPercentPercent = startLeftPercent;
-        Path = Environment.CurrentDirectory;
+        Path = path ?? Environment.CurrentDirectory;
     }
 
     protected string Path
@@ -139,6 +139,7 @@ public abstract class FileManagerDisplay
         {
             WriteLog(this, failure, LogType.Error, e);
         }
+
         return false;
     }
 
@@ -213,6 +214,7 @@ public abstract class FileManagerDisplay
                         WriteLog(this, error, LogType.Info);
                         break;
                     }
+
                     Console.CursorVisible = false;
                     WriteLog(this, "", LogType.Draw);
                     return input;
@@ -230,6 +232,7 @@ public abstract class FileManagerDisplay
                         input = input[..(cursorPos - 1)] + input[cursorPos..];
                         cursorPos--;
                     }
+
                     break;
                 case ConsoleKey.Delete:
                     if (cursorPos < input.Length)
@@ -253,6 +256,7 @@ public abstract class FileManagerDisplay
                         input = input[..cursorPos] + key.KeyChar + input[cursorPos..];
                         cursorPos++;
                     }
+
                     break;
             }
         }
